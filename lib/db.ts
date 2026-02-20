@@ -30,6 +30,14 @@ export async function ensureSchema() {
   `)
 
   await pool.query(`
+    CREATE TABLE IF NOT EXISTS zt_users (
+      id         SERIAL PRIMARY KEY,
+      name       TEXT NOT NULL UNIQUE,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `)
+
+  await pool.query(`
     CREATE TABLE IF NOT EXISTS zt_segments (
       id               SERIAL PRIMARY KEY,
       zipcode_id       INT  NOT NULL REFERENCES zt_zipcodes(id) ON DELETE CASCADE,

@@ -429,23 +429,28 @@ export default function Home() {
   useEffect(() => {
     const saved = localStorage.getItem("zt_user")
     if (saved) setUserName(saved)
+    // Restore territory from session so back-button works
+    const savedTerritory = sessionStorage.getItem("zt_territory")
+    if (savedTerritory) setActiveTerritory(savedTerritory)
     setHydrated(true)
-    loadZipcodes()
+    loadZipcodes(savedTerritory ?? "")
     fetch("/api/users")
       .then(r => r.json())
       .then((data: string[]) => setKnownUsers(data))
       .catch(() => {})
   }, [])
 
-  const loadZipcodes = () => {
+  const loadZipcodes = (currentTerritory = activeTerritory) => {
     fetch("/api/zipcodes")
       .then(r => r.json())
       .then(data => {
         setZipcodes(data)
         setLoading(false)
-        // Auto-select first territory if none chosen yet
-        if (!activeTerritory && data.length > 0) {
-          setActiveTerritory(data[0].territory)
+        // Auto-select first territory only if none is already set
+        if (!currentTerritory && data.length > 0) {
+          const first = data[0].territory
+          setActiveTerritory(first)
+          sessionStorage.setItem("zt_territory", first)
         }
       })
       .catch(() => setLoading(false))
@@ -456,6 +461,12 @@ export default function Home() {
     localStorage.setItem("zt_seen_overview", "1")
     setUserName(name)
     setShowPicker(false)
+    // Persist the name to DB so it's available on any device
+    fetch("/api/users", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name }),
+    }).catch(() => {})
   }
 
   // Group: territory → city → rows
@@ -517,7 +528,7 @@ export default function Home() {
           {!loading && Object.keys(grouped).length > 0 && (
             <div className="flex gap-1 p-1 bg-gray-100 dark:bg-gray-800 rounded-xl">
               {Object.keys(grouped).map(t => (
-                <button key={t} onClick={() => setActiveTerritory(t)}
+                <button key={t} onClick={() => { setActiveTerritory(t); sessionStorage.setItem("zt_territory", t) }}
                   className={`px-4 py-1.5 rounded-lg text-sm font-semibold transition-all duration-200 whitespace-nowrap ${
                     activeTerritory === t
                       ? "bg-indigo-600 text-white shadow-[0_0_14px_rgba(99,102,241,0.65)]"
