@@ -63,20 +63,17 @@ function WelcomeCard({ knownUsers, onSelect }: { knownUsers: string[]; onSelect:
 
   return (
     <div className="fixed inset-0 z-40 flex items-center justify-center px-4 bg-black/40 backdrop-blur-sm">
-      <div className="bg-white dark:bg-gray-900 rounded-3xl shadow-2xl border border-gray-200 dark:border-gray-700 w-full max-w-md overflow-hidden">
+      <div className="bg-white dark:bg-gray-900 rounded-3xl shadow-2xl border border-gray-200 dark:border-gray-700 w-full max-w-lg overflow-hidden">
 
         {/* Header */}
-        <div className="px-7 pt-7 pb-5 text-center border-b border-gray-100 dark:border-gray-800">
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-indigo-100 dark:bg-indigo-900/40 text-2xl mb-3">📍</div>
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white">Welcome to Zipcode Tracker</h2>
-          <p className="text-sm text-gray-400 mt-1 leading-relaxed">
-            The Lacy Boulevard team&apos;s A-Z page tracker.
-          </p>
+        <div className="px-8 pt-8 pb-5 text-center border-b border-gray-100 dark:border-gray-800">
+          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-indigo-100 dark:bg-indigo-900/40 text-3xl mb-3">📍</div>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Welcome to Zipcode Tracker</h2>
         </div>
 
         {/* Feature list */}
         {!showSignIn && (
-          <div className="px-7 py-5 flex flex-col gap-3">
+          <div className="px-8 py-6 flex flex-col gap-4">
             {FEATURES.map((f, i) => (
               <div key={i} className="flex items-start gap-3">
                 <span className="shrink-0 w-7 h-7 rounded-lg bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center text-sm">{f.icon}</span>
@@ -91,7 +88,7 @@ function WelcomeCard({ knownUsers, onSelect }: { knownUsers: string[]; onSelect:
 
         {/* Sign-in form (revealed on button click) */}
         {showSignIn && (
-          <div className="px-7 py-5">
+          <div className="px-8 py-6">
             {knownUsers.length > 0 && (
               <div className="flex gap-1 p-1 bg-gray-100 dark:bg-gray-800 rounded-xl mb-4">
                 {(["pick", "new"] as const).map(t => (
@@ -126,7 +123,7 @@ function WelcomeCard({ knownUsers, onSelect }: { knownUsers: string[]; onSelect:
         )}
 
         {/* Footer CTA */}
-        <div className="px-7 pb-7 pt-2">
+        <div className="px-8 pb-8 pt-2">
           {!showSignIn ? (
             <button onClick={() => setShowSignIn(true)}
               className="w-full h-11 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm transition-colors shadow-sm">
