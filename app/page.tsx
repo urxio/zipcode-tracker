@@ -50,8 +50,14 @@ const FEATURES = [
 // ── Welcome card (shown to unsigned-in users) ─────────────────────────────────
 function WelcomeCard({ knownUsers, onSelect }: { knownUsers: string[]; onSelect: (name: string) => void }) {
   const [showSignIn, setShowSignIn] = useState(false)
-  const [tab, setTab]       = useState<"pick" | "new">(knownUsers.length > 0 ? "pick" : "new")
+  const [tab, setTab]       = useState<"pick" | "new">("pick")
   const [newName, setNewName] = useState("")
+
+  // Once users load, always default to "pick"; only fall back to "new" if truly empty
+  useEffect(() => {
+    if (knownUsers.length > 0) setTab("pick")
+    else setTab("new")
+  }, [knownUsers])
 
   const submit = () => { const n = newName.trim(); if (n) onSelect(n) }
 
@@ -142,6 +148,11 @@ function WelcomeCard({ knownUsers, onSelect }: { knownUsers: string[]; onSelect:
 function NamePickerModal({ knownUsers, onSelect }: { knownUsers: string[]; onSelect: (name: string) => void }) {
   const [newName, setNewName] = useState("")
   const [tab, setTab] = useState<"pick" | "new">(knownUsers.length > 0 ? "pick" : "new")
+
+  useEffect(() => {
+    if (knownUsers.length > 0) setTab("pick")
+  }, [knownUsers])
+
   const submit = () => { const n = newName.trim(); if (n) onSelect(n) }
 
   return (
