@@ -1,5 +1,34 @@
-import { NextResponse } from "next/server"
+import { NextRequest, NextResponse } from "next/server"
 import { pool, ensureSchema } from "@/lib/db"
+
+// POST /api/zipcodes — add a new zipcode
+export async function POST(req: NextRequest) {
+  await ensureSchema()
+  const body = await req.json()
+  const city        = (body.city        ?? "").trim()
+  const zipcode     = (body.zipcode     ?? "").trim()
+  const total_pages = parseInt(body.total_pages ?? "0")
+
+  if (!city || !zipcode || !total_pages) {
+    return NextResponse.json({ error: "city, zipcode, and total_pages are required" }, { status: 400 })
+  }
+
+  try {
+    const result = await pool.query(
+      `INSERT INTO zt_zipcodes (city, zipcode, total_pages)
+       VALUES ($1, $2, $3)
+       ON CONFLICT (zipcode) DO NOTHING
+       RETURNING *`,
+      [city, zipcode, total_pages]
+    )
+    if (result.rows.length === 0) {
+      return NextResponse.json({ error: "Zipcode already exists" }, { status: 409 })
+    }
+    return NextResponse.json(result.rows[0])
+  } catch (err: any) {
+    return NextResponse.json({ error: err.message }, { status: 500 })
+  }
+}
 
 export async function GET() {
   await ensureSchema()
