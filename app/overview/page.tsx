@@ -1,4 +1,7 @@
+"use client"
+
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 
 const features = [
   {
@@ -39,6 +42,14 @@ const features = [
 ]
 
 export default function OverviewPage() {
+  const router = useRouter()
+
+  const handleGetStarted = () => {
+    // Mark that the user has seen the overview so the main page won't redirect back
+    localStorage.setItem("zt_seen_overview", "1")
+    router.push("/")
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
 
@@ -49,9 +60,9 @@ export default function OverviewPage() {
             <span className="text-lg">📍</span>
             <span className="text-base font-bold text-gray-900 dark:text-white">Zipcode Tracker</span>
           </div>
-          <Link href="/" className="text-sm font-semibold text-indigo-600 dark:text-indigo-400 hover:underline">
+          <button onClick={handleGetStarted} className="text-sm font-semibold text-indigo-600 dark:text-indigo-400 hover:underline">
             Go to Dashboard →
-          </Link>
+          </button>
         </div>
       </nav>
 
@@ -91,12 +102,12 @@ export default function OverviewPage() {
 
         {/* CTA */}
         <div className="text-center">
-          <Link
-            href="/"
+          <button
+            onClick={handleGetStarted}
             className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm transition-colors shadow-sm"
           >
             Get started →
-          </Link>
+          </button>
         </div>
       </main>
     </div>

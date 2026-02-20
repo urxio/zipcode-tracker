@@ -304,11 +304,13 @@ export default function Home() {
       .then(r => r.json())
       .then((data: string[]) => {
         setKnownUsers(data)
-        // No name saved → redirect to overview (first-time visitor)
-        if (!saved) router.push("/overview")
+        // No name saved AND hasn't seen overview → redirect to overview (first-time visitor)
+        const seenOverview = localStorage.getItem("zt_seen_overview")
+        if (!saved && !seenOverview) router.push("/overview")
       })
       .catch(() => {
-        if (!saved) router.push("/overview")
+        const seenOverview = localStorage.getItem("zt_seen_overview")
+        if (!saved && !seenOverview) router.push("/overview")
       })
   }, [])
 
