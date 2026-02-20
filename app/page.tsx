@@ -76,10 +76,10 @@ function WelcomeCard({ knownUsers, onSelect }: { knownUsers: string[]; onSelect:
           <div className="px-8 py-6 flex flex-col gap-4">
             {FEATURES.map((f, i) => (
               <div key={i} className="flex items-start gap-3">
-                <span className="shrink-0 w-7 h-7 rounded-lg bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center text-sm">{f.icon}</span>
+                <span className="shrink-0 w-9 h-9 rounded-lg bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center text-lg">{f.icon}</span>
                 <div>
-                  <p className="text-xs font-bold text-gray-800 dark:text-gray-200">{f.title}</p>
-                  <p className="text-xs text-gray-400 leading-relaxed">{f.desc}</p>
+                  <p className="text-sm font-bold text-gray-800 dark:text-gray-200">{f.title}</p>
+                  <p className="text-sm text-gray-400 leading-relaxed">{f.desc}</p>
                 </div>
               </div>
             ))}
@@ -93,7 +93,7 @@ function WelcomeCard({ knownUsers, onSelect }: { knownUsers: string[]; onSelect:
               <div className="flex gap-1 p-1 bg-gray-100 dark:bg-gray-800 rounded-xl mb-4">
                 {(["pick", "new"] as const).map(t => (
                   <button key={t} onClick={() => setTab(t)}
-                    className={`flex-1 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 ${tab === t ? "bg-indigo-600 text-white shadow-[0_0_14px_rgba(99,102,241,0.65)]" : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"}`}>
+                    className={`flex-1 py-2 rounded-lg text-sm font-semibold transition-all duration-200 ${tab === t ? "bg-indigo-600 text-white shadow-[0_0_14px_rgba(99,102,241,0.65)]" : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"}`}>
                     {t === "pick" ? "Select existing" : "New user"}
                   </button>
                 ))}
@@ -103,7 +103,7 @@ function WelcomeCard({ knownUsers, onSelect }: { knownUsers: string[]; onSelect:
               <div className="flex flex-col gap-2 max-h-52 overflow-y-auto pr-1">
                 {knownUsers.map(name => (
                   <button key={name} onClick={() => onSelect(name)}
-                    className="w-full text-left px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-indigo-400 dark:hover:border-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 text-sm font-medium text-gray-800 dark:text-gray-200 transition-all">
+                    className="w-full text-left px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-indigo-400 dark:hover:border-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 text-base font-medium text-gray-800 dark:text-gray-200 transition-all">
                     {name}
                   </button>
                 ))}
@@ -112,9 +112,9 @@ function WelcomeCard({ knownUsers, onSelect }: { knownUsers: string[]; onSelect:
               <div className="flex flex-col gap-3">
                 <input autoFocus value={newName} onChange={e => setNewName(e.target.value)} onKeyDown={e => e.key === "Enter" && submit()}
                   placeholder="Enter your name…"
-                  className="h-10 px-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400" />
+                  className="h-11 px-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 text-base focus:outline-none focus:ring-2 focus:ring-indigo-400" />
                 <button onClick={submit} disabled={!newName.trim()}
-                  className="h-10 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white text-sm font-semibold transition-colors">
+                  className="h-11 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white text-base font-semibold transition-colors">
                   Continue
                 </button>
               </div>
@@ -126,12 +126,12 @@ function WelcomeCard({ knownUsers, onSelect }: { knownUsers: string[]; onSelect:
         <div className="px-8 pb-8 pt-2">
           {!showSignIn ? (
             <button onClick={() => setShowSignIn(true)}
-              className="w-full h-11 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm transition-colors shadow-sm">
+              className="w-full h-12 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-base transition-colors shadow-sm">
               Sign in to get started →
             </button>
           ) : (
             <button onClick={() => setShowSignIn(false)}
-              className="w-full text-center text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors pt-1">
+              className="w-full text-center text-sm text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors pt-1">
               ← Back to overview
             </button>
           )}
@@ -304,31 +304,31 @@ function MySegmentsPanel({ userName }: { userName: string }) {
     return (
       <tr className="border-b border-gray-100 dark:border-gray-800 last:border-0 hover:bg-gray-50 dark:hover:bg-gray-800/30">
         <td className="px-5 py-3">
-          <Link href={`/${seg.zipcode}`} className="font-semibold text-indigo-600 dark:text-indigo-400 hover:underline text-xs">
+          <Link href={`/${seg.zipcode}`} className="font-semibold text-indigo-600 dark:text-indigo-400 hover:underline text-sm">
             {seg.city} {seg.zipcode}
           </Link>
         </td>
-        <td className="px-4 py-3 font-medium text-gray-900 dark:text-white whitespace-nowrap text-sm">
+        <td className="px-4 py-3 font-medium text-gray-900 dark:text-white whitespace-nowrap text-base">
           {seg.page_start}{seg.page_end ? ` – ${seg.page_end}` : "+"}
         </td>
-        <td className="px-4 py-3 text-gray-500 text-sm">
+        <td className="px-4 py-3 text-gray-500 text-base">
           {isEditing ? (
             <input type="number" value={editing[seg.id].stopped_at_page}
               onChange={e => setEditing(prev => ({ ...prev, [seg.id]: { ...prev[seg.id], stopped_at_page: e.target.value } }))}
-              className="w-20 h-7 px-2 text-xs rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-1 focus:ring-indigo-400"
+              className="w-24 h-8 px-2 text-sm rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-1 focus:ring-indigo-400"
               placeholder="page #" />
           ) : (seg.stopped_at_page ?? "—")}
         </td>
         <td className="px-4 py-3">
           {isEditing ? (
             <select value={editing[seg.id].status} onChange={e => setEditing(prev => ({ ...prev, [seg.id]: { ...prev[seg.id], status: e.target.value } }))}
-              className="h-7 px-2 text-xs rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-1 focus:ring-indigo-400">
+              className="h-8 px-2 text-sm rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-1 focus:ring-indigo-400">
               <option>Not started</option>
               <option>In progress</option>
               <option>Completed</option>
             </select>
           ) : (
-            <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${STATUS_STYLES[seg.status] ?? STATUS_STYLES["Not started"]}`}>
+            <span className={`text-sm font-medium px-2.5 py-0.5 rounded-full ${STATUS_STYLES[seg.status] ?? STATUS_STYLES["Not started"]}`}>
               {seg.status}
             </span>
           )}
@@ -337,17 +337,17 @@ function MySegmentsPanel({ userName }: { userName: string }) {
           {isEditing ? (
             <div className="flex gap-1.5">
               <button onClick={() => saveEdit(seg.id)} disabled={isSaving}
-                className="px-2.5 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold disabled:opacity-50 transition-colors">
+                className="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold disabled:opacity-50 transition-colors">
                 {isSaving ? "…" : "Save"}
               </button>
               <button onClick={() => cancelEdit(seg.id)}
-                className="px-2.5 py-1 rounded-lg bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400 text-xs font-semibold transition-colors">
+                className="px-3 py-1.5 rounded-lg bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400 text-sm font-semibold transition-colors">
                 Cancel
               </button>
             </div>
           ) : (
             <button onClick={() => startEdit(seg)}
-              className="px-2.5 py-1 rounded-lg bg-gray-100 hover:bg-indigo-50 dark:bg-gray-800 dark:hover:bg-indigo-900/30 text-gray-600 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 text-xs font-semibold transition-colors">
+              className="px-3 py-1.5 rounded-lg bg-gray-100 hover:bg-indigo-50 dark:bg-gray-800 dark:hover:bg-indigo-900/30 text-gray-600 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 text-sm font-semibold transition-colors">
               Update
             </button>
           )}
@@ -360,11 +360,11 @@ function MySegmentsPanel({ userName }: { userName: string }) {
     <div className="mb-8 bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden">
       {/* Panel header */}
       <div className="px-5 py-3 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
-        <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+        <span className="text-base font-semibold text-gray-700 dark:text-gray-300">
           Your segments
-          <span className="ml-2 text-xs font-normal text-gray-400">({segments.length})</span>
+          <span className="ml-2 text-sm font-normal text-gray-400">({segments.length})</span>
         </span>
-        <div className="flex gap-3 text-xs text-gray-400">
+        <div className="flex gap-3 text-sm text-gray-400">
           {inProgress.length > 0 && <span className="text-amber-500 font-medium">{inProgress.length} in progress</span>}
           {notStarted.length > 0 && <span>{notStarted.length} not started</span>}
           {completed.length  > 0 && <span className="text-green-600 font-medium">{completed.length} done</span>}
@@ -377,10 +377,10 @@ function MySegmentsPanel({ userName }: { userName: string }) {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-gray-100 dark:border-gray-800">
-                <th className="text-left px-5 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wide">Zipcode</th>
-                <th className="text-left px-4 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wide">Pages</th>
-                <th className="text-left px-4 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wide">Stopped at</th>
-                <th className="text-left px-4 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wide">Status</th>
+                <th className="text-left px-5 py-2.5 text-sm font-semibold text-gray-400 uppercase tracking-wide">Zipcode</th>
+                <th className="text-left px-4 py-2.5 text-sm font-semibold text-gray-400 uppercase tracking-wide">Pages</th>
+                <th className="text-left px-4 py-2.5 text-sm font-semibold text-gray-400 uppercase tracking-wide">Stopped at</th>
+                <th className="text-left px-4 py-2.5 text-sm font-semibold text-gray-400 uppercase tracking-wide">Status</th>
                 <th className="px-4 py-2"></th>
               </tr>
             </thead>
@@ -400,7 +400,7 @@ function MySegmentsPanel({ userName }: { userName: string }) {
         <div className="border-t border-gray-100 dark:border-gray-800">
           <button
             onClick={() => setCompletedOpen(o => !o)}
-            className="w-full flex items-center justify-between px-5 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/40 transition-colors"
+            className="w-full flex items-center justify-between px-5 py-3 text-sm font-semibold text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/40 transition-colors"
           >
             <span className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-green-500 inline-block" />
@@ -507,20 +507,20 @@ export default function Home() {
         <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <span className="text-lg">📍</span>
-            <span className="text-base font-bold text-gray-900 dark:text-white">Zipcode Tracker</span>
+            <span className="text-lg font-bold text-gray-900 dark:text-white">Zipcode Tracker</span>
           </div>
           <div className="flex items-center gap-2">
             {hydrated && userName ? (
               <>
-                <span className="px-2.5 py-1 rounded-full bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 text-xs font-semibold">
+                <span className="px-3 py-1 rounded-full bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 text-sm font-semibold">
                   {userName}
                 </span>
-                <button onClick={() => setShowPicker(true)} className="text-xs text-gray-400 hover:text-indigo-500 transition-colors">
+                <button onClick={() => setShowPicker(true)} className="text-sm text-gray-400 hover:text-indigo-500 transition-colors">
                   Change
                 </button>
               </>
             ) : hydrated && (
-              <button onClick={() => setShowPicker(true)} className="h-8 px-3 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold transition-colors">
+              <button onClick={() => setShowPicker(true)} className="h-9 px-4 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold transition-colors">
                 Sign in
               </button>
             )}
@@ -578,13 +578,13 @@ export default function Home() {
               {/* Territory progress bar */}
               <div className="mb-8 bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-5 shadow-sm">
                 <div className="flex items-center justify-between mb-3">
-                  <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">Overall Progress</span>
-                  <span className="text-sm font-bold text-indigo-600 dark:text-indigo-400">{tPct}%</span>
+                  <span className="text-base font-semibold text-gray-700 dark:text-gray-300">Overall Progress</span>
+                  <span className="text-base font-bold text-indigo-600 dark:text-indigo-400">{tPct}%</span>
                 </div>
                 <div className="h-2 w-full bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
                   <div className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full transition-all duration-500" style={{ width: `${tPct}%` }} />
                 </div>
-                <div className="flex gap-4 mt-3 text-xs text-gray-500 dark:text-gray-400">
+                <div className="flex gap-4 mt-3 text-sm text-gray-500 dark:text-gray-400">
                   <span><span className="font-semibold text-green-600">{tCompleted}</span> completed</span>
                   <span><span className="font-semibold text-amber-500">{tInProgress}</span> in progress</span>
                   <span><span className="font-semibold text-gray-400">{tNotStarted}</span> not started</span>
@@ -595,7 +595,7 @@ export default function Home() {
               <div className="flex flex-col gap-8">
                 {Object.entries(cityMap).map(([city, rows]) => (
                   <div key={city}>
-                    <h3 className="text-sm font-extrabold uppercase tracking-widest text-gray-700 dark:text-gray-300 mb-3">
+                    <h3 className="text-base font-extrabold uppercase tracking-widest text-gray-700 dark:text-gray-300 mb-3">
                       {city}
                     </h3>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -609,15 +609,15 @@ export default function Home() {
                             className="group block bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-5 shadow-sm hover:shadow-md hover:border-indigo-300 dark:hover:border-indigo-700 transition-all">
                             <div className="flex items-start justify-between mb-3">
                               <div>
-                                <p className="text-lg font-bold text-gray-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">{z.zipcode}</p>
-                                <p className="text-xs text-gray-400">{z.total_pages.toLocaleString()} pages</p>
+                                <p className="text-xl font-bold text-gray-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">{z.zipcode}</p>
+                                <p className="text-sm text-gray-400">{z.total_pages.toLocaleString()} pages</p>
                               </div>
                               {allDone ? (
-                                <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300">✓ Done</span>
+                                <span className="text-sm font-semibold px-2.5 py-0.5 rounded-full bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300">✓ Done</span>
                               ) : z.segment_count === 0 ? (
-                                <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400">Open</span>
+                                <span className="text-sm font-semibold px-2.5 py-0.5 rounded-full bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400">Open</span>
                               ) : (
-                                <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-300">{compPct}%</span>
+                                <span className="text-sm font-semibold px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-300">{compPct}%</span>
                               )}
                             </div>
                             <div className="h-2 w-full rounded-full overflow-hidden flex gap-0.5 mb-3">
@@ -631,7 +631,7 @@ export default function Home() {
                                 </>
                               )}
                             </div>
-                            <div className="flex gap-3 text-xs text-gray-500 dark:text-gray-400">
+                            <div className="flex gap-3 text-sm text-gray-500 dark:text-gray-400">
                               <span>{z.segment_count} segment{z.segment_count !== 1 ? "s" : ""}</span>
                               {z.completed   > 0 && <span className="text-green-600">{z.completed} done</span>}
                               {z.in_progress > 0 && <span className="text-amber-500">{z.in_progress} active</span>}
