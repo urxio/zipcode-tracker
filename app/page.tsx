@@ -2,7 +2,6 @@
 
 import { useEffect, useState, useMemo } from "react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
 
 type ZipcodeRow = {
   id: number
@@ -39,11 +38,109 @@ const STATUS_STYLES: Record<string, string> = {
   "Not started": "bg-gray-100  text-gray-500  dark:bg-gray-800     dark:text-gray-400",
 }
 
-// ── Name Picker Modal ─────────────────────────────────────────────────────────
+const FEATURES = [
+  { icon: "📍", title: "Territory dashboard", desc: "All zipcodes grouped by city with live segmented progress bars." },
+  { icon: "📋", title: "Your segments at a glance", desc: "Active and not-started segments shown front and centre after sign-in." },
+  { icon: "✋", title: "Claim a page range", desc: "Open any zipcode and claim a start–end page range in one tap." },
+  { icon: "✏️", title: "Update your progress", desc: "Set the page you stopped at and flip the status right from the dashboard." },
+  { icon: "📊", title: "Live progress tracking", desc: "Bars update in real time across all territories as work is logged." },
+]
+
+// ── Welcome card (shown to unsigned-in users) ─────────────────────────────────
+function WelcomeCard({ knownUsers, onSelect }: { knownUsers: string[]; onSelect: (name: string) => void }) {
+  const [showSignIn, setShowSignIn] = useState(false)
+  const [tab, setTab]       = useState<"pick" | "new">(knownUsers.length > 0 ? "pick" : "new")
+  const [newName, setNewName] = useState("")
+
+  const submit = () => { const n = newName.trim(); if (n) onSelect(n) }
+
+  return (
+    <div className="fixed inset-0 z-40 flex items-center justify-center px-4 bg-black/40 backdrop-blur-sm">
+      <div className="bg-white dark:bg-gray-900 rounded-3xl shadow-2xl border border-gray-200 dark:border-gray-700 w-full max-w-md overflow-hidden">
+
+        {/* Header */}
+        <div className="px-7 pt-7 pb-5 text-center border-b border-gray-100 dark:border-gray-800">
+          <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-indigo-100 dark:bg-indigo-900/40 text-2xl mb-3">📍</div>
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white">Welcome to Zipcode Tracker</h2>
+          <p className="text-sm text-gray-400 mt-1 leading-relaxed">
+            The Lacy Boulevard team&apos;s A-Z page tracker.
+          </p>
+        </div>
+
+        {/* Feature list */}
+        {!showSignIn && (
+          <div className="px-7 py-5 flex flex-col gap-3">
+            {FEATURES.map((f, i) => (
+              <div key={i} className="flex items-start gap-3">
+                <span className="shrink-0 w-7 h-7 rounded-lg bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center text-sm">{f.icon}</span>
+                <div>
+                  <p className="text-xs font-bold text-gray-800 dark:text-gray-200">{f.title}</p>
+                  <p className="text-xs text-gray-400 leading-relaxed">{f.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Sign-in form (revealed on button click) */}
+        {showSignIn && (
+          <div className="px-7 py-5">
+            {knownUsers.length > 0 && (
+              <div className="flex gap-1 p-1 bg-gray-100 dark:bg-gray-800 rounded-xl mb-4">
+                {(["pick", "new"] as const).map(t => (
+                  <button key={t} onClick={() => setTab(t)}
+                    className={`flex-1 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 ${tab === t ? "bg-indigo-600 text-white shadow-[0_0_14px_rgba(99,102,241,0.65)]" : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"}`}>
+                    {t === "pick" ? "Select existing" : "New user"}
+                  </button>
+                ))}
+              </div>
+            )}
+            {tab === "pick" ? (
+              <div className="flex flex-col gap-2 max-h-52 overflow-y-auto pr-1">
+                {knownUsers.map(name => (
+                  <button key={name} onClick={() => onSelect(name)}
+                    className="w-full text-left px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-indigo-400 dark:hover:border-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 text-sm font-medium text-gray-800 dark:text-gray-200 transition-all">
+                    {name}
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <div className="flex flex-col gap-3">
+                <input autoFocus value={newName} onChange={e => setNewName(e.target.value)} onKeyDown={e => e.key === "Enter" && submit()}
+                  placeholder="Enter your name…"
+                  className="h-10 px-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400" />
+                <button onClick={submit} disabled={!newName.trim()}
+                  className="h-10 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white text-sm font-semibold transition-colors">
+                  Continue
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Footer CTA */}
+        <div className="px-7 pb-7 pt-2">
+          {!showSignIn ? (
+            <button onClick={() => setShowSignIn(true)}
+              className="w-full h-11 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm transition-colors shadow-sm">
+              Sign in to get started →
+            </button>
+          ) : (
+            <button onClick={() => setShowSignIn(false)}
+              className="w-full text-center text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors pt-1">
+              ← Back to overview
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── Name Picker Modal (for "Change" from nav when already signed in) ───────────
 function NamePickerModal({ knownUsers, onSelect }: { knownUsers: string[]; onSelect: (name: string) => void }) {
   const [newName, setNewName] = useState("")
   const [tab, setTab] = useState<"pick" | "new">(knownUsers.length > 0 ? "pick" : "new")
-
   const submit = () => { const n = newName.trim(); if (n) onSelect(n) }
 
   return (
@@ -141,10 +238,11 @@ function AddZipcodeModal({ onClose, onAdded }: { onClose: () => void; onAdded: (
 
 // ── My Segments Panel ─────────────────────────────────────────────────────────
 function MySegmentsPanel({ userName }: { userName: string }) {
-  const [segments, setSegments]   = useState<MySegment[]>([])
-  const [loading, setLoading]     = useState(true)
-  const [editing, setEditing]     = useState<Record<number, { stopped_at_page: string; status: string }>>({})
-  const [saving, setSaving]       = useState<Set<number>>(new Set())
+  const [segments, setSegments]         = useState<MySegment[]>([])
+  const [loading, setLoading]           = useState(true)
+  const [editing, setEditing]           = useState<Record<number, { stopped_at_page: string; status: string }>>({})
+  const [saving, setSaving]             = useState<Set<number>>(new Set())
+  const [completedOpen, setCompletedOpen] = useState(false)
 
   const load = () => {
     setLoading(true)
@@ -156,15 +254,13 @@ function MySegmentsPanel({ userName }: { userName: string }) {
 
   useEffect(() => { if (userName) load() }, [userName])
 
-  const startEdit = (seg: MySegment) =>
+  const startEdit  = (seg: MySegment) =>
     setEditing(prev => ({ ...prev, [seg.id]: { stopped_at_page: seg.stopped_at_page?.toString() ?? "", status: seg.status } }))
-
   const cancelEdit = (id: number) =>
     setEditing(prev => { const n = { ...prev }; delete n[id]; return n })
 
   const saveEdit = async (id: number) => {
-    const e = editing[id]
-    if (!e) return
+    const e = editing[id]; if (!e) return
     setSaving(prev => new Set(prev).add(id))
     const res = await fetch("/api/segments", {
       method: "PATCH",
@@ -188,13 +284,72 @@ function MySegmentsPanel({ userName }: { userName: string }) {
     </div>
   )
 
-  const inProgress  = segments.filter(s => s.status === "In progress")
-  const notStarted  = segments.filter(s => s.status === "Not started")
-  const completed   = segments.filter(s => s.status === "Completed")
-  const ordered     = [...inProgress, ...notStarted, ...completed]
+  const inProgress = segments.filter(s => s.status === "In progress")
+  const notStarted = segments.filter(s => s.status === "Not started")
+  const completed  = segments.filter(s => s.status === "Completed")
+  const active     = [...inProgress, ...notStarted]
+
+  const SegRow = ({ seg }: { seg: MySegment }) => {
+    const isEditing = !!editing[seg.id]
+    const isSaving  = saving.has(seg.id)
+    return (
+      <tr className="border-b border-gray-100 dark:border-gray-800 last:border-0 hover:bg-gray-50 dark:hover:bg-gray-800/30">
+        <td className="px-5 py-3">
+          <Link href={`/${seg.zipcode}`} className="font-semibold text-indigo-600 dark:text-indigo-400 hover:underline text-xs">
+            {seg.city} {seg.zipcode}
+          </Link>
+        </td>
+        <td className="px-4 py-3 font-medium text-gray-900 dark:text-white whitespace-nowrap text-sm">
+          {seg.page_start}{seg.page_end ? ` – ${seg.page_end}` : "+"}
+        </td>
+        <td className="px-4 py-3 text-gray-500 text-sm">
+          {isEditing ? (
+            <input type="number" value={editing[seg.id].stopped_at_page}
+              onChange={e => setEditing(prev => ({ ...prev, [seg.id]: { ...prev[seg.id], stopped_at_page: e.target.value } }))}
+              className="w-20 h-7 px-2 text-xs rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-1 focus:ring-indigo-400"
+              placeholder="page #" />
+          ) : (seg.stopped_at_page ?? "—")}
+        </td>
+        <td className="px-4 py-3">
+          {isEditing ? (
+            <select value={editing[seg.id].status} onChange={e => setEditing(prev => ({ ...prev, [seg.id]: { ...prev[seg.id], status: e.target.value } }))}
+              className="h-7 px-2 text-xs rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-1 focus:ring-indigo-400">
+              <option>Not started</option>
+              <option>In progress</option>
+              <option>Completed</option>
+            </select>
+          ) : (
+            <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${STATUS_STYLES[seg.status] ?? STATUS_STYLES["Not started"]}`}>
+              {seg.status}
+            </span>
+          )}
+        </td>
+        <td className="px-4 py-3">
+          {isEditing ? (
+            <div className="flex gap-1.5">
+              <button onClick={() => saveEdit(seg.id)} disabled={isSaving}
+                className="px-2.5 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold disabled:opacity-50 transition-colors">
+                {isSaving ? "…" : "Save"}
+              </button>
+              <button onClick={() => cancelEdit(seg.id)}
+                className="px-2.5 py-1 rounded-lg bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400 text-xs font-semibold transition-colors">
+                Cancel
+              </button>
+            </div>
+          ) : (
+            <button onClick={() => startEdit(seg)}
+              className="px-2.5 py-1 rounded-lg bg-gray-100 hover:bg-indigo-50 dark:bg-gray-800 dark:hover:bg-indigo-900/30 text-gray-600 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 text-xs font-semibold transition-colors">
+              Update
+            </button>
+          )}
+        </td>
+      </tr>
+    )
+  }
 
   return (
     <div className="mb-8 bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden">
+      {/* Panel header */}
       <div className="px-5 py-3 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
         <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">
           Your segments
@@ -206,85 +361,61 @@ function MySegmentsPanel({ userName }: { userName: string }) {
           {completed.length  > 0 && <span className="text-green-600 font-medium">{completed.length} done</span>}
         </div>
       </div>
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-gray-100 dark:border-gray-800">
-              <th className="text-left px-5 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wide">Zipcode</th>
-              <th className="text-left px-4 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wide">Pages</th>
-              <th className="text-left px-4 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wide">Stopped at</th>
-              <th className="text-left px-4 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wide">Status</th>
-              <th className="px-4 py-2"></th>
-            </tr>
-          </thead>
-          <tbody>
-            {ordered.map(seg => {
-              const isEditing = !!editing[seg.id]
-              const isSaving  = saving.has(seg.id)
-              return (
-                <tr key={seg.id} className="border-b border-gray-100 dark:border-gray-800 last:border-0 hover:bg-gray-50 dark:hover:bg-gray-800/30">
-                  <td className="px-5 py-3">
-                    <Link href={`/${seg.zipcode}`} className="font-semibold text-indigo-600 dark:text-indigo-400 hover:underline text-xs">
-                      {seg.city} {seg.zipcode}
-                    </Link>
-                  </td>
-                  <td className="px-4 py-3 font-medium text-gray-900 dark:text-white whitespace-nowrap">
-                    {seg.page_start}{seg.page_end ? ` – ${seg.page_end}` : "+"}
-                  </td>
-                  <td className="px-4 py-3 text-gray-500">
-                    {isEditing ? (
-                      <input type="number" value={editing[seg.id].stopped_at_page}
-                        onChange={e => setEditing(prev => ({ ...prev, [seg.id]: { ...prev[seg.id], stopped_at_page: e.target.value } }))}
-                        className="w-20 h-7 px-2 text-xs rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-1 focus:ring-indigo-400"
-                        placeholder="page #" />
-                    ) : (seg.stopped_at_page ?? "—")}
-                  </td>
-                  <td className="px-4 py-3">
-                    {isEditing ? (
-                      <select value={editing[seg.id].status} onChange={e => setEditing(prev => ({ ...prev, [seg.id]: { ...prev[seg.id], status: e.target.value } }))}
-                        className="h-7 px-2 text-xs rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-1 focus:ring-indigo-400">
-                        <option>Not started</option>
-                        <option>In progress</option>
-                        <option>Completed</option>
-                      </select>
-                    ) : (
-                      <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${STATUS_STYLES[seg.status] ?? STATUS_STYLES["Not started"]}`}>
-                        {seg.status}
-                      </span>
-                    )}
-                  </td>
-                  <td className="px-4 py-3">
-                    {isEditing ? (
-                      <div className="flex gap-1.5">
-                        <button onClick={() => saveEdit(seg.id)} disabled={isSaving}
-                          className="px-2.5 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold disabled:opacity-50 transition-colors">
-                          {isSaving ? "…" : "Save"}
-                        </button>
-                        <button onClick={() => cancelEdit(seg.id)}
-                          className="px-2.5 py-1 rounded-lg bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400 text-xs font-semibold transition-colors">
-                          Cancel
-                        </button>
-                      </div>
-                    ) : (
-                      <button onClick={() => startEdit(seg)}
-                        className="px-2.5 py-1 rounded-lg bg-gray-100 hover:bg-indigo-50 dark:bg-gray-800 dark:hover:bg-indigo-900/30 text-gray-600 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 text-xs font-semibold transition-colors">
-                        Update
-                      </button>
-                    )}
-                  </td>
-                </tr>
-              )
-            })}
-          </tbody>
-        </table>
-      </div>
+
+      {/* Active segments table (In progress + Not started) */}
+      {active.length > 0 && (
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-gray-100 dark:border-gray-800">
+                <th className="text-left px-5 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wide">Zipcode</th>
+                <th className="text-left px-4 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wide">Pages</th>
+                <th className="text-left px-4 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wide">Stopped at</th>
+                <th className="text-left px-4 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wide">Status</th>
+                <th className="px-4 py-2"></th>
+              </tr>
+            </thead>
+            <tbody>
+              {active.map(seg => <SegRow key={seg.id} seg={seg} />)}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {active.length === 0 && completed.length > 0 && (
+        <p className="px-5 py-4 text-sm text-gray-400">All your segments are completed 🎉</p>
+      )}
+
+      {/* Completed dropdown */}
+      {completed.length > 0 && (
+        <div className="border-t border-gray-100 dark:border-gray-800">
+          <button
+            onClick={() => setCompletedOpen(o => !o)}
+            className="w-full flex items-center justify-between px-5 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/40 transition-colors"
+          >
+            <span className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-green-500 inline-block" />
+              Completed ({completed.length})
+            </span>
+            <span className={`transition-transform duration-200 ${completedOpen ? "rotate-180" : ""}`}>▾</span>
+          </button>
+          {completedOpen && (
+            <div className="overflow-x-auto border-t border-gray-100 dark:border-gray-800">
+              <table className="w-full text-sm">
+                <tbody>
+                  {completed.map(seg => <SegRow key={seg.id} seg={seg} />)}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   )
 }
 
 // ── Main Page ─────────────────────────────────────────────────────────────────
 export default function Home() {
-  const router = useRouter()
   const [zipcodes, setZipcodes]     = useState<ZipcodeRow[]>([])
   const [loading, setLoading]       = useState(true)
   const [userName, setUserName]     = useState("")
@@ -297,21 +428,11 @@ export default function Home() {
     const saved = localStorage.getItem("zt_user")
     if (saved) setUserName(saved)
     setHydrated(true)
-
     loadZipcodes()
-
     fetch("/api/users")
       .then(r => r.json())
-      .then((data: string[]) => {
-        setKnownUsers(data)
-        // No name saved AND hasn't seen overview → redirect to overview (first-time visitor)
-        const seenOverview = localStorage.getItem("zt_seen_overview")
-        if (!saved && !seenOverview) router.push("/overview")
-      })
-      .catch(() => {
-        const seenOverview = localStorage.getItem("zt_seen_overview")
-        if (!saved && !seenOverview) router.push("/overview")
-      })
+      .then((data: string[]) => setKnownUsers(data))
+      .catch(() => {})
   }, [])
 
   const loadZipcodes = () => {
@@ -323,6 +444,7 @@ export default function Home() {
 
   const selectName = (name: string) => {
     localStorage.setItem("zt_user", name)
+    localStorage.setItem("zt_seen_overview", "1")
     setUserName(name)
     setShowPicker(false)
   }
@@ -340,10 +462,18 @@ export default function Home() {
   const totalCompleted = zipcodes.reduce((a, z) => a + z.completed, 0)
   const overallPct     = pct(totalCompleted, totalSegments)
 
+  // Show welcome card for unsigned-in users (after hydration)
+  const showWelcome = hydrated && !userName
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
 
-      {showPicker && hydrated && <NamePickerModal knownUsers={knownUsers} onSelect={selectName} />}
+      {/* Welcome card overlay for new / unsigned-in users */}
+      {showWelcome && <WelcomeCard knownUsers={knownUsers} onSelect={selectName} />}
+
+      {/* Change-name modal (for already signed-in users) */}
+      {showPicker && hydrated && userName && <NamePickerModal knownUsers={knownUsers} onSelect={selectName} />}
+
       {showAddZip && <AddZipcodeModal onClose={() => setShowAddZip(false)} onAdded={() => { setLoading(true); loadZipcodes() }} />}
 
       {/* Nav */}
@@ -354,12 +484,8 @@ export default function Home() {
             <span className="text-base font-bold text-gray-900 dark:text-white">Zipcode Tracker</span>
           </div>
           <div className="flex items-center gap-2">
-            <Link href="/overview" className="text-xs text-gray-400 hover:text-indigo-500 transition-colors hidden sm:inline">
-              Overview
-            </Link>
             {hydrated && userName ? (
               <>
-                <span className="text-xs text-gray-500 dark:text-gray-400 hidden sm:inline">·</span>
                 <span className="px-2.5 py-1 rounded-full bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 text-xs font-semibold">
                   {userName}
                 </span>
@@ -420,7 +546,6 @@ export default function Home() {
           <div className="flex flex-col gap-8">
             {Object.entries(grouped).map(([city, rows]) => (
               <div key={city}>
-                {/* Bold city heading */}
                 <h2 className="text-sm font-extrabold uppercase tracking-widest text-gray-700 dark:text-gray-300 mb-3">
                   {city}
                 </h2>
