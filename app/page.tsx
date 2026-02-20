@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useMemo } from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 
 type ZipcodeRow = {
   id: number
@@ -14,82 +15,71 @@ type ZipcodeRow = {
   not_started: number
 }
 
+type MySegment = {
+  id: number
+  page_start: number
+  page_end: number | null
+  owner: string
+  stopped_at_page: number | null
+  status: string
+  notes: string
+  updated_at: string
+  city: string
+  zipcode: string
+  total_pages: number
+}
+
 function pct(a: number, total: number) {
   return total > 0 ? Math.round((a / total) * 100) : 0
 }
 
+const STATUS_STYLES: Record<string, string> = {
+  "Completed":   "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300",
+  "In progress": "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300",
+  "Not started": "bg-gray-100  text-gray-500  dark:bg-gray-800     dark:text-gray-400",
+}
+
 // ── Name Picker Modal ─────────────────────────────────────────────────────────
-function NamePickerModal({
-  knownUsers,
-  onSelect,
-}: {
-  knownUsers: string[]
-  onSelect: (name: string) => void
-}) {
+function NamePickerModal({ knownUsers, onSelect }: { knownUsers: string[]; onSelect: (name: string) => void }) {
   const [newName, setNewName] = useState("")
   const [tab, setTab] = useState<"pick" | "new">(knownUsers.length > 0 ? "pick" : "new")
 
-  const submit = () => {
-    const n = newName.trim()
-    if (n) onSelect(n)
-  }
+  const submit = () => { const n = newName.trim(); if (n) onSelect(n) }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4">
       <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 w-full max-w-sm overflow-hidden">
-        {/* Header */}
         <div className="px-6 py-5 border-b border-gray-100 dark:border-gray-800">
           <h2 className="text-lg font-bold text-gray-900 dark:text-white">Who are you?</h2>
           <p className="text-sm text-gray-400 mt-0.5">Pick your name to track your segments.</p>
         </div>
-
-        {/* Tab switcher */}
         {knownUsers.length > 0 && (
           <div className="flex gap-1 p-1.5 bg-gray-100 dark:bg-gray-800 mx-6 mt-4 rounded-xl">
             {(["pick", "new"] as const).map(t => (
-              <button
-                key={t}
-                onClick={() => setTab(t)}
-                className={`flex-1 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 ${
-                  tab === t
-                    ? "bg-indigo-600 text-white shadow-[0_0_14px_rgba(99,102,241,0.65)]"
-                    : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
-                }`}
-              >
+              <button key={t} onClick={() => setTab(t)}
+                className={`flex-1 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 ${tab === t ? "bg-indigo-600 text-white shadow-[0_0_14px_rgba(99,102,241,0.65)]" : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"}`}>
                 {t === "pick" ? "Select existing" : "New user"}
               </button>
             ))}
           </div>
         )}
-
         <div className="px-6 py-5">
           {tab === "pick" ? (
             <div className="flex flex-col gap-2 max-h-64 overflow-y-auto pr-1">
               {knownUsers.map(name => (
-                <button
-                  key={name}
-                  onClick={() => onSelect(name)}
-                  className="w-full text-left px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-indigo-400 dark:hover:border-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 text-sm font-medium text-gray-800 dark:text-gray-200 transition-all"
-                >
+                <button key={name} onClick={() => onSelect(name)}
+                  className="w-full text-left px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-indigo-400 dark:hover:border-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 text-sm font-medium text-gray-800 dark:text-gray-200 transition-all">
                   {name}
                 </button>
               ))}
             </div>
           ) : (
             <div className="flex flex-col gap-3">
-              <input
-                autoFocus
-                value={newName}
-                onChange={e => setNewName(e.target.value)}
-                onKeyDown={e => e.key === "Enter" && submit()}
+              <input autoFocus value={newName} onChange={e => setNewName(e.target.value)} onKeyDown={e => e.key === "Enter" && submit()}
                 placeholder="Enter your name…"
-                className="h-10 px-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
-              />
-              <button
-                onClick={submit}
-                disabled={!newName.trim()}
-                className="h-10 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white text-sm font-semibold transition-colors"
-              >
+                className="h-10 px-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400" />
+              <button onClick={submit} disabled={!newName.trim()}
+                className="h-10 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white text-sm font-semibold transition-colors">
                 Continue
               </button>
             </div>
@@ -101,40 +91,21 @@ function NamePickerModal({
 }
 
 // ── Add Zipcode Modal ─────────────────────────────────────────────────────────
-function AddZipcodeModal({
-  onClose,
-  onAdded,
-}: {
-  onClose: () => void
-  onAdded: () => void
-}) {
-  const [city, setCity]           = useState("")
-  const [zipcode, setZipcode]     = useState("")
+function AddZipcodeModal({ onClose, onAdded }: { onClose: () => void; onAdded: () => void }) {
+  const [city, setCity] = useState("")
+  const [zipcode, setZipcode] = useState("")
   const [totalPages, setTotalPages] = useState("")
-  const [saving, setSaving]       = useState(false)
-  const [error, setError]         = useState("")
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState("")
 
   const submit = async () => {
     setError("")
     const pages = parseInt(totalPages)
-    if (!city.trim() || !zipcode.trim() || !pages || pages < 1) {
-      setError("All fields are required and total pages must be > 0.")
-      return
-    }
+    if (!city.trim() || !zipcode.trim() || !pages || pages < 1) { setError("All fields are required."); return }
     setSaving(true)
-    const res = await fetch("/api/zipcodes", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ city: city.trim(), zipcode: zipcode.trim(), total_pages: pages }),
-    })
+    const res = await fetch("/api/zipcodes", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ city: city.trim(), zipcode: zipcode.trim(), total_pages: pages }) })
     setSaving(false)
-    if (res.ok) {
-      onAdded()
-      onClose()
-    } else {
-      const d = await res.json()
-      setError(d.error ?? "Failed to add zipcode.")
-    }
+    if (res.ok) { onAdded(); onClose() } else { const d = await res.json(); setError(d.error ?? "Failed to add zipcode.") }
   }
 
   return (
@@ -142,55 +113,25 @@ function AddZipcodeModal({
       <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 w-full max-w-sm overflow-hidden">
         <div className="px-6 py-5 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
           <h2 className="text-lg font-bold text-gray-900 dark:text-white">Add Zipcode</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors text-xl leading-none">×</button>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 text-xl leading-none">×</button>
         </div>
         <div className="px-6 py-5 flex flex-col gap-4">
-          <div>
-            <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5">City</label>
-            <input
-              autoFocus
-              value={city}
-              onChange={e => setCity(e.target.value)}
-              placeholder="e.g. Alexandria"
-              className="w-full h-10 px-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-400"
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5">Zipcode</label>
-            <input
-              value={zipcode}
-              onChange={e => setZipcode(e.target.value)}
-              placeholder="e.g. 22314"
-              className="w-full h-10 px-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-400"
-            />
-          </div>
+          {[["City", city, setCity, "e.g. Alexandria"], ["Zipcode", zipcode, setZipcode, "e.g. 22314"]].map(([label, val, setter, ph]) => (
+            <div key={label as string}>
+              <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5">{label as string}</label>
+              <input value={val as string} onChange={e => (setter as (v: string) => void)(e.target.value)} placeholder={ph as string}
+                className="w-full h-10 px-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-400" />
+            </div>
+          ))}
           <div>
             <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5">Total pages in A-Z</label>
-            <input
-              type="number"
-              value={totalPages}
-              onChange={e => setTotalPages(e.target.value)}
-              onKeyDown={e => e.key === "Enter" && submit()}
-              placeholder="e.g. 800"
-              min={1}
-              className="w-full h-10 px-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-400"
-            />
+            <input type="number" value={totalPages} onChange={e => setTotalPages(e.target.value)} onKeyDown={e => e.key === "Enter" && submit()} placeholder="e.g. 800" min={1}
+              className="w-full h-10 px-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-400" />
           </div>
           {error && <p className="text-xs text-red-500">{error}</p>}
           <div className="flex gap-2 pt-1">
-            <button
-              onClick={onClose}
-              className="flex-1 h-10 rounded-xl border border-gray-200 dark:border-gray-700 text-sm font-semibold text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={submit}
-              disabled={saving}
-              className="flex-1 h-10 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white text-sm font-semibold transition-colors"
-            >
-              {saving ? "Adding…" : "Add Zipcode"}
-            </button>
+            <button onClick={onClose} className="flex-1 h-10 rounded-xl border border-gray-200 dark:border-gray-700 text-sm font-semibold text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">Cancel</button>
+            <button onClick={submit} disabled={saving} className="flex-1 h-10 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white text-sm font-semibold transition-colors">{saving ? "Adding…" : "Add Zipcode"}</button>
           </div>
         </div>
       </div>
@@ -198,15 +139,159 @@ function AddZipcodeModal({
   )
 }
 
+// ── My Segments Panel ─────────────────────────────────────────────────────────
+function MySegmentsPanel({ userName }: { userName: string }) {
+  const [segments, setSegments]   = useState<MySegment[]>([])
+  const [loading, setLoading]     = useState(true)
+  const [editing, setEditing]     = useState<Record<number, { stopped_at_page: string; status: string }>>({})
+  const [saving, setSaving]       = useState<Set<number>>(new Set())
+
+  const load = () => {
+    setLoading(true)
+    fetch(`/api/segments/mine?owner=${encodeURIComponent(userName)}`)
+      .then(r => r.json())
+      .then(data => { setSegments(Array.isArray(data) ? data : []); setLoading(false) })
+      .catch(() => setLoading(false))
+  }
+
+  useEffect(() => { if (userName) load() }, [userName])
+
+  const startEdit = (seg: MySegment) =>
+    setEditing(prev => ({ ...prev, [seg.id]: { stopped_at_page: seg.stopped_at_page?.toString() ?? "", status: seg.status } }))
+
+  const cancelEdit = (id: number) =>
+    setEditing(prev => { const n = { ...prev }; delete n[id]; return n })
+
+  const saveEdit = async (id: number) => {
+    const e = editing[id]
+    if (!e) return
+    setSaving(prev => new Set(prev).add(id))
+    const res = await fetch("/api/segments", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, stopped_at_page: e.stopped_at_page ? parseInt(e.stopped_at_page) : null, status: e.status }),
+    })
+    setSaving(prev => { const s = new Set(prev); s.delete(id); return s })
+    if (res.ok) { cancelEdit(id); load() }
+  }
+
+  if (loading) return (
+    <div className="mb-8 bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-5 shadow-sm">
+      <div className="h-4 w-40 bg-gray-100 dark:bg-gray-800 rounded animate-pulse" />
+    </div>
+  )
+
+  if (segments.length === 0) return (
+    <div className="mb-8 bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-5 shadow-sm">
+      <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Your segments</p>
+      <p className="text-sm text-gray-400">You don&apos;t have any segments yet. Open a zipcode and claim a page range!</p>
+    </div>
+  )
+
+  const inProgress  = segments.filter(s => s.status === "In progress")
+  const notStarted  = segments.filter(s => s.status === "Not started")
+  const completed   = segments.filter(s => s.status === "Completed")
+  const ordered     = [...inProgress, ...notStarted, ...completed]
+
+  return (
+    <div className="mb-8 bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden">
+      <div className="px-5 py-3 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
+        <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+          Your segments
+          <span className="ml-2 text-xs font-normal text-gray-400">({segments.length})</span>
+        </span>
+        <div className="flex gap-3 text-xs text-gray-400">
+          {inProgress.length > 0 && <span className="text-amber-500 font-medium">{inProgress.length} in progress</span>}
+          {notStarted.length > 0 && <span>{notStarted.length} not started</span>}
+          {completed.length  > 0 && <span className="text-green-600 font-medium">{completed.length} done</span>}
+        </div>
+      </div>
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-gray-100 dark:border-gray-800">
+              <th className="text-left px-5 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wide">Zipcode</th>
+              <th className="text-left px-4 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wide">Pages</th>
+              <th className="text-left px-4 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wide">Stopped at</th>
+              <th className="text-left px-4 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wide">Status</th>
+              <th className="px-4 py-2"></th>
+            </tr>
+          </thead>
+          <tbody>
+            {ordered.map(seg => {
+              const isEditing = !!editing[seg.id]
+              const isSaving  = saving.has(seg.id)
+              return (
+                <tr key={seg.id} className="border-b border-gray-100 dark:border-gray-800 last:border-0 hover:bg-gray-50 dark:hover:bg-gray-800/30">
+                  <td className="px-5 py-3">
+                    <Link href={`/${seg.zipcode}`} className="font-semibold text-indigo-600 dark:text-indigo-400 hover:underline text-xs">
+                      {seg.city} {seg.zipcode}
+                    </Link>
+                  </td>
+                  <td className="px-4 py-3 font-medium text-gray-900 dark:text-white whitespace-nowrap">
+                    {seg.page_start}{seg.page_end ? ` – ${seg.page_end}` : "+"}
+                  </td>
+                  <td className="px-4 py-3 text-gray-500">
+                    {isEditing ? (
+                      <input type="number" value={editing[seg.id].stopped_at_page}
+                        onChange={e => setEditing(prev => ({ ...prev, [seg.id]: { ...prev[seg.id], stopped_at_page: e.target.value } }))}
+                        className="w-20 h-7 px-2 text-xs rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-1 focus:ring-indigo-400"
+                        placeholder="page #" />
+                    ) : (seg.stopped_at_page ?? "—")}
+                  </td>
+                  <td className="px-4 py-3">
+                    {isEditing ? (
+                      <select value={editing[seg.id].status} onChange={e => setEditing(prev => ({ ...prev, [seg.id]: { ...prev[seg.id], status: e.target.value } }))}
+                        className="h-7 px-2 text-xs rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-1 focus:ring-indigo-400">
+                        <option>Not started</option>
+                        <option>In progress</option>
+                        <option>Completed</option>
+                      </select>
+                    ) : (
+                      <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${STATUS_STYLES[seg.status] ?? STATUS_STYLES["Not started"]}`}>
+                        {seg.status}
+                      </span>
+                    )}
+                  </td>
+                  <td className="px-4 py-3">
+                    {isEditing ? (
+                      <div className="flex gap-1.5">
+                        <button onClick={() => saveEdit(seg.id)} disabled={isSaving}
+                          className="px-2.5 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold disabled:opacity-50 transition-colors">
+                          {isSaving ? "…" : "Save"}
+                        </button>
+                        <button onClick={() => cancelEdit(seg.id)}
+                          className="px-2.5 py-1 rounded-lg bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400 text-xs font-semibold transition-colors">
+                          Cancel
+                        </button>
+                      </div>
+                    ) : (
+                      <button onClick={() => startEdit(seg)}
+                        className="px-2.5 py-1 rounded-lg bg-gray-100 hover:bg-indigo-50 dark:bg-gray-800 dark:hover:bg-indigo-900/30 text-gray-600 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 text-xs font-semibold transition-colors">
+                        Update
+                      </button>
+                    )}
+                  </td>
+                </tr>
+              )
+            })}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  )
+}
+
 // ── Main Page ─────────────────────────────────────────────────────────────────
 export default function Home() {
-  const [zipcodes, setZipcodes]       = useState<ZipcodeRow[]>([])
-  const [loading, setLoading]         = useState(true)
-  const [userName, setUserName]       = useState("")
-  const [knownUsers, setKnownUsers]   = useState<string[]>([])
-  const [showPicker, setShowPicker]   = useState(false)
-  const [showAddZip, setShowAddZip]   = useState(false)
-  const [hydrated, setHydrated]       = useState(false)
+  const router = useRouter()
+  const [zipcodes, setZipcodes]     = useState<ZipcodeRow[]>([])
+  const [loading, setLoading]       = useState(true)
+  const [userName, setUserName]     = useState("")
+  const [knownUsers, setKnownUsers] = useState<string[]>([])
+  const [showPicker, setShowPicker] = useState(false)
+  const [showAddZip, setShowAddZip] = useState(false)
+  const [hydrated, setHydrated]     = useState(false)
 
   useEffect(() => {
     const saved = localStorage.getItem("zt_user")
@@ -219,11 +304,11 @@ export default function Home() {
       .then(r => r.json())
       .then((data: string[]) => {
         setKnownUsers(data)
-        // Show picker if no name saved yet
-        if (!saved) setShowPicker(true)
+        // No name saved → redirect to overview (first-time visitor)
+        if (!saved) router.push("/overview")
       })
       .catch(() => {
-        if (!saved) setShowPicker(true)
+        if (!saved) router.push("/overview")
       })
   }, [])
 
@@ -240,7 +325,6 @@ export default function Home() {
     setShowPicker(false)
   }
 
-  // Group by city
   const grouped = useMemo(() => {
     const map: Record<string, ZipcodeRow[]> = {}
     for (const z of zipcodes) {
@@ -257,18 +341,10 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
 
-      {/* Modals */}
-      {showPicker && hydrated && (
-        <NamePickerModal knownUsers={knownUsers} onSelect={selectName} />
-      )}
-      {showAddZip && (
-        <AddZipcodeModal
-          onClose={() => setShowAddZip(false)}
-          onAdded={() => { setLoading(true); loadZipcodes() }}
-        />
-      )}
+      {showPicker && hydrated && <NamePickerModal knownUsers={knownUsers} onSelect={selectName} />}
+      {showAddZip && <AddZipcodeModal onClose={() => setShowAddZip(false)} onAdded={() => { setLoading(true); loadZipcodes() }} />}
 
-      {/* ── Nav ── */}
+      {/* Nav */}
       <nav className="sticky top-0 z-30 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 shadow-sm">
         <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between gap-4">
           <div className="flex items-center gap-2">
@@ -276,28 +352,23 @@ export default function Home() {
             <span className="text-base font-bold text-gray-900 dark:text-white">Zipcode Tracker</span>
           </div>
           <div className="flex items-center gap-2">
+            <Link href="/overview" className="text-xs text-gray-400 hover:text-indigo-500 transition-colors hidden sm:inline">
+              Overview
+            </Link>
             {hydrated && userName ? (
               <>
-                <span className="text-xs text-gray-500 dark:text-gray-400 hidden sm:inline">Signed in as</span>
+                <span className="text-xs text-gray-500 dark:text-gray-400 hidden sm:inline">·</span>
                 <span className="px-2.5 py-1 rounded-full bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 text-xs font-semibold">
                   {userName}
                 </span>
-                <button
-                  onClick={() => setShowPicker(true)}
-                  className="text-xs text-gray-400 hover:text-indigo-500 transition-colors"
-                >
+                <button onClick={() => setShowPicker(true)} className="text-xs text-gray-400 hover:text-indigo-500 transition-colors">
                   Change
                 </button>
               </>
-            ) : (
-              hydrated && (
-                <button
-                  onClick={() => setShowPicker(true)}
-                  className="h-8 px-3 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold transition-colors"
-                >
-                  Sign in
-                </button>
-              )
+            ) : hydrated && (
+              <button onClick={() => setShowPicker(true)} className="h-8 px-3 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold transition-colors">
+                Sign in
+              </button>
             )}
           </div>
         </div>
@@ -305,26 +376,22 @@ export default function Home() {
 
       <main className="max-w-5xl mx-auto px-4 py-8">
 
-        {/* ── Header ── */}
+        {/* Header */}
         <div className="flex items-start justify-between mb-8 gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
-              Lacy Boulevard Territory Tracker
-            </h1>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              Track page-range assignments across all zipcodes. Click a zipcode to view or claim a segment.
-            </p>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">Lacy Boulevard Territory Tracker</h1>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Track page-range assignments across all zipcodes.</p>
           </div>
-          <button
-            onClick={() => setShowAddZip(true)}
-            className="shrink-0 inline-flex items-center gap-1.5 h-9 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold transition-colors shadow-sm"
-          >
-            <span className="text-base leading-none">+</span>
-            Add Zipcode
+          <button onClick={() => setShowAddZip(true)}
+            className="shrink-0 inline-flex items-center gap-1.5 h-9 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold transition-colors shadow-sm">
+            <span className="text-base leading-none">+</span> Add Zipcode
           </button>
         </div>
 
-        {/* ── Overall progress ── */}
+        {/* My segments — only shown when signed in */}
+        {hydrated && userName && <MySegmentsPanel userName={userName} />}
+
+        {/* Overall progress */}
         {!loading && zipcodes.length > 0 && (
           <div className="mb-8 bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-5 shadow-sm">
             <div className="flex items-center justify-between mb-3">
@@ -332,10 +399,7 @@ export default function Home() {
               <span className="text-sm font-bold text-indigo-600 dark:text-indigo-400">{overallPct}%</span>
             </div>
             <div className="h-2 w-full bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full transition-all duration-500"
-                style={{ width: `${overallPct}%` }}
-              />
+              <div className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full transition-all duration-500" style={{ width: `${overallPct}%` }} />
             </div>
             <div className="flex gap-4 mt-3 text-xs text-gray-500 dark:text-gray-400">
               <span><span className="font-semibold text-green-600">{totalCompleted}</span> completed</span>
@@ -345,7 +409,7 @@ export default function Home() {
           </div>
         )}
 
-        {/* ── Zipcode grid grouped by city ── */}
+        {/* Zipcode grid */}
         {loading ? (
           <div className="flex items-center justify-center py-24">
             <div className="w-6 h-6 rounded-full border-2 border-indigo-500 border-t-transparent animate-spin" />
@@ -354,7 +418,8 @@ export default function Home() {
           <div className="flex flex-col gap-8">
             {Object.entries(grouped).map(([city, rows]) => (
               <div key={city}>
-                <h2 className="text-xs font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500 mb-3">
+                {/* Bold city heading */}
+                <h2 className="text-sm font-extrabold uppercase tracking-widest text-gray-700 dark:text-gray-300 mb-3">
                   {city}
                 </h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -363,18 +428,12 @@ export default function Home() {
                     const ipPct   = pct(z.in_progress, z.segment_count)
                     const nsPct   = pct(z.not_started, z.segment_count)
                     const allDone = z.segment_count > 0 && z.not_started === 0 && z.in_progress === 0
-
                     return (
-                      <Link
-                        key={z.zipcode}
-                        href={`/${z.zipcode}`}
-                        className="group block bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-5 shadow-sm hover:shadow-md hover:border-indigo-300 dark:hover:border-indigo-700 transition-all"
-                      >
+                      <Link key={z.zipcode} href={`/${z.zipcode}`}
+                        className="group block bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-5 shadow-sm hover:shadow-md hover:border-indigo-300 dark:hover:border-indigo-700 transition-all">
                         <div className="flex items-start justify-between mb-3">
                           <div>
-                            <p className="text-lg font-bold text-gray-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
-                              {z.zipcode}
-                            </p>
+                            <p className="text-lg font-bold text-gray-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">{z.zipcode}</p>
                             <p className="text-xs text-gray-400">{z.total_pages.toLocaleString()} pages</p>
                           </div>
                           {allDone ? (
@@ -385,8 +444,6 @@ export default function Home() {
                             <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-300">{compPct}%</span>
                           )}
                         </div>
-
-                        {/* Segmented progress bar */}
                         <div className="h-2 w-full rounded-full overflow-hidden flex gap-0.5 mb-3">
                           {z.segment_count === 0 ? (
                             <div className="flex-1 bg-gray-100 dark:bg-gray-800 rounded-full" />
@@ -398,7 +455,6 @@ export default function Home() {
                             </>
                           )}
                         </div>
-
                         <div className="flex gap-3 text-xs text-gray-500 dark:text-gray-400">
                           <span>{z.segment_count} segment{z.segment_count !== 1 ? "s" : ""}</span>
                           {z.completed   > 0 && <span className="text-green-600">{z.completed} done</span>}
