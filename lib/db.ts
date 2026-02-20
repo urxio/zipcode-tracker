@@ -19,8 +19,14 @@ export async function ensureSchema() {
       city        TEXT NOT NULL,
       zipcode     TEXT NOT NULL UNIQUE,
       total_pages INT  NOT NULL DEFAULT 0,
+      territory   TEXT NOT NULL DEFAULT 'Lacy Boulevard',
       created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
     )
+  `)
+
+  // Migrate: add territory column if it doesn't exist yet
+  await pool.query(`
+    ALTER TABLE zt_zipcodes ADD COLUMN IF NOT EXISTS territory TEXT NOT NULL DEFAULT 'Lacy Boulevard'
   `)
 
   await pool.query(`

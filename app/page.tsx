@@ -8,6 +8,7 @@ type ZipcodeRow = {
   city: string
   zipcode: string
   total_pages: number
+  territory: string
   segment_count: number
   completed: number
   in_progress: number
@@ -449,18 +450,16 @@ export default function Home() {
     setShowPicker(false)
   }
 
+  // Group: territory → city → rows
   const grouped = useMemo(() => {
-    const map: Record<string, ZipcodeRow[]> = {}
+    const map: Record<string, Record<string, ZipcodeRow[]>> = {}
     for (const z of zipcodes) {
-      if (!map[z.city]) map[z.city] = []
-      map[z.city].push(z)
+      if (!map[z.territory]) map[z.territory] = {}
+      if (!map[z.territory][z.city]) map[z.territory][z.city] = []
+      map[z.territory][z.city].push(z)
     }
     return map
   }, [zipcodes])
-
-  const totalSegments  = zipcodes.reduce((a, z) => a + z.segment_count, 0)
-  const totalCompleted = zipcodes.reduce((a, z) => a + z.completed, 0)
-  const overallPct     = pct(totalCompleted, totalSegments)
 
   // Show welcome card for unsigned-in users (after hydration)
   const showWelcome = hydrated && !userName
@@ -519,81 +518,98 @@ export default function Home() {
         {/* My segments — only shown when signed in */}
         {hydrated && userName && <MySegmentsPanel userName={userName} />}
 
-        {/* Overall progress */}
-        {!loading && zipcodes.length > 0 && (
-          <div className="mb-8 bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-5 shadow-sm">
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">Overall Progress</span>
-              <span className="text-sm font-bold text-indigo-600 dark:text-indigo-400">{overallPct}%</span>
-            </div>
-            <div className="h-2 w-full bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
-              <div className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full transition-all duration-500" style={{ width: `${overallPct}%` }} />
-            </div>
-            <div className="flex gap-4 mt-3 text-xs text-gray-500 dark:text-gray-400">
-              <span><span className="font-semibold text-green-600">{totalCompleted}</span> completed</span>
-              <span><span className="font-semibold text-amber-500">{zipcodes.reduce((a, z) => a + z.in_progress, 0)}</span> in progress</span>
-              <span><span className="font-semibold text-gray-400">{zipcodes.reduce((a, z) => a + z.not_started, 0)}</span> not started</span>
-            </div>
-          </div>
-        )}
-
-        {/* Zipcode grid */}
-        {loading ? (
+        {/* Loading spinner */}
+        {loading && (
           <div className="flex items-center justify-center py-24">
             <div className="w-6 h-6 rounded-full border-2 border-indigo-500 border-t-transparent animate-spin" />
           </div>
-        ) : (
-          <div className="flex flex-col gap-8">
-            {Object.entries(grouped).map(([city, rows]) => (
-              <div key={city}>
-                <h2 className="text-sm font-extrabold uppercase tracking-widest text-gray-700 dark:text-gray-300 mb-3">
-                  {city}
-                </h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {rows.map(z => {
-                    const compPct = pct(z.completed,   z.segment_count)
-                    const ipPct   = pct(z.in_progress, z.segment_count)
-                    const nsPct   = pct(z.not_started, z.segment_count)
-                    const allDone = z.segment_count > 0 && z.not_started === 0 && z.in_progress === 0
-                    return (
-                      <Link key={z.zipcode} href={`/${z.zipcode}`}
-                        className="group block bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-5 shadow-sm hover:shadow-md hover:border-indigo-300 dark:hover:border-indigo-700 transition-all">
-                        <div className="flex items-start justify-between mb-3">
-                          <div>
-                            <p className="text-lg font-bold text-gray-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">{z.zipcode}</p>
-                            <p className="text-xs text-gray-400">{z.total_pages.toLocaleString()} pages</p>
-                          </div>
-                          {allDone ? (
-                            <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300">✓ Done</span>
-                          ) : z.segment_count === 0 ? (
-                            <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400">Open</span>
-                          ) : (
-                            <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-300">{compPct}%</span>
-                          )}
+        )}
+
+        {/* Territory sections */}
+        {!loading && (
+          <div className="flex flex-col gap-12">
+            {Object.entries(grouped).map(([territory, cityMap]) => {
+              const tRows       = Object.values(cityMap).flat()
+              const tSegs       = tRows.reduce((a, z) => a + z.segment_count, 0)
+              const tCompleted  = tRows.reduce((a, z) => a + z.completed,     0)
+              const tInProgress = tRows.reduce((a, z) => a + z.in_progress,   0)
+              const tNotStarted = tRows.reduce((a, z) => a + z.not_started,   0)
+              const tPct        = pct(tCompleted, tSegs)
+
+              return (
+                <div key={territory}>
+                  {/* Territory header + progress */}
+                  <div className="mb-5 bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-5 shadow-sm">
+                    <div className="flex items-center justify-between mb-3">
+                      <h2 className="text-base font-extrabold text-gray-900 dark:text-white">{territory}</h2>
+                      <span className="text-sm font-bold text-indigo-600 dark:text-indigo-400">{tPct}%</span>
+                    </div>
+                    <div className="h-2 w-full bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
+                      <div className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full transition-all duration-500" style={{ width: `${tPct}%` }} />
+                    </div>
+                    <div className="flex gap-4 mt-3 text-xs text-gray-500 dark:text-gray-400">
+                      <span><span className="font-semibold text-green-600">{tCompleted}</span> completed</span>
+                      <span><span className="font-semibold text-amber-500">{tInProgress}</span> in progress</span>
+                      <span><span className="font-semibold text-gray-400">{tNotStarted}</span> not started</span>
+                    </div>
+                  </div>
+
+                  {/* Cities + zipcodes */}
+                  <div className="flex flex-col gap-8">
+                    {Object.entries(cityMap).map(([city, rows]) => (
+                      <div key={city}>
+                        <h3 className="text-sm font-extrabold uppercase tracking-widest text-gray-700 dark:text-gray-300 mb-3">
+                          {city}
+                        </h3>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                          {rows.map(z => {
+                            const compPct = pct(z.completed,   z.segment_count)
+                            const ipPct   = pct(z.in_progress, z.segment_count)
+                            const nsPct   = pct(z.not_started, z.segment_count)
+                            const allDone = z.segment_count > 0 && z.not_started === 0 && z.in_progress === 0
+                            return (
+                              <Link key={z.zipcode} href={`/${z.zipcode}`}
+                                className="group block bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-5 shadow-sm hover:shadow-md hover:border-indigo-300 dark:hover:border-indigo-700 transition-all">
+                                <div className="flex items-start justify-between mb-3">
+                                  <div>
+                                    <p className="text-lg font-bold text-gray-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">{z.zipcode}</p>
+                                    <p className="text-xs text-gray-400">{z.total_pages.toLocaleString()} pages</p>
+                                  </div>
+                                  {allDone ? (
+                                    <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300">✓ Done</span>
+                                  ) : z.segment_count === 0 ? (
+                                    <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400">Open</span>
+                                  ) : (
+                                    <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-300">{compPct}%</span>
+                                  )}
+                                </div>
+                                <div className="h-2 w-full rounded-full overflow-hidden flex gap-0.5 mb-3">
+                                  {z.segment_count === 0 ? (
+                                    <div className="flex-1 bg-gray-100 dark:bg-gray-800 rounded-full" />
+                                  ) : (
+                                    <>
+                                      {compPct > 0 && <div className="bg-green-500 rounded-l-full" style={{ width: `${compPct}%` }} />}
+                                      {ipPct   > 0 && <div className="bg-amber-400"               style={{ width: `${ipPct}%`  }} />}
+                                      {nsPct   > 0 && <div className="bg-gray-200 dark:bg-gray-700 rounded-r-full" style={{ width: `${nsPct}%` }} />}
+                                    </>
+                                  )}
+                                </div>
+                                <div className="flex gap-3 text-xs text-gray-500 dark:text-gray-400">
+                                  <span>{z.segment_count} segment{z.segment_count !== 1 ? "s" : ""}</span>
+                                  {z.completed   > 0 && <span className="text-green-600">{z.completed} done</span>}
+                                  {z.in_progress > 0 && <span className="text-amber-500">{z.in_progress} active</span>}
+                                  {z.not_started > 0 && <span className="text-gray-400">{z.not_started} open</span>}
+                                </div>
+                              </Link>
+                            )
+                          })}
                         </div>
-                        <div className="h-2 w-full rounded-full overflow-hidden flex gap-0.5 mb-3">
-                          {z.segment_count === 0 ? (
-                            <div className="flex-1 bg-gray-100 dark:bg-gray-800 rounded-full" />
-                          ) : (
-                            <>
-                              {compPct > 0 && <div className="bg-green-500 rounded-l-full" style={{ width: `${compPct}%` }} />}
-                              {ipPct   > 0 && <div className="bg-amber-400"               style={{ width: `${ipPct}%`  }} />}
-                              {nsPct   > 0 && <div className="bg-gray-200 dark:bg-gray-700 rounded-r-full" style={{ width: `${nsPct}%` }} />}
-                            </>
-                          )}
-                        </div>
-                        <div className="flex gap-3 text-xs text-gray-500 dark:text-gray-400">
-                          <span>{z.segment_count} segment{z.segment_count !== 1 ? "s" : ""}</span>
-                          {z.completed   > 0 && <span className="text-green-600">{z.completed} done</span>}
-                          {z.in_progress > 0 && <span className="text-amber-500">{z.in_progress} active</span>}
-                          {z.not_started > 0 && <span className="text-gray-400">{z.not_started} open</span>}
-                        </div>
-                      </Link>
-                    )
-                  })}
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         )}
       </main>
