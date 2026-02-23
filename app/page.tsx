@@ -247,10 +247,11 @@ function AddZipcodeModal({ onClose, onAdded }: { onClose: () => void; onAdded: (
 
 // ── My Segments Panel ─────────────────────────────────────────────────────────
 function MySegmentsPanel({ userName }: { userName: string }) {
-  const [segments, setSegments]         = useState<MySegment[]>([])
-  const [loading, setLoading]           = useState(true)
-  const [editing, setEditing]           = useState<Record<number, { stopped_at_page: string; status: string }>>({})
-  const [saving, setSaving]             = useState<Set<number>>(new Set())
+  const [segments, setSegments]           = useState<MySegment[]>([])
+  const [loading, setLoading]             = useState(true)
+  const [editing, setEditing]             = useState<Record<number, { stopped_at_page: string; status: string; page_start: string; page_end: string }>>({})
+  const [saving, setSaving]               = useState<Set<number>>(new Set())
+  const [confirming, setConfirming]       = useState<Set<number>>(new Set())
   const [completedOpen, setCompletedOpen] = useState(false)
 
   const load = () => {
@@ -264,7 +265,12 @@ function MySegmentsPanel({ userName }: { userName: string }) {
   useEffect(() => { if (userName) load() }, [userName])
 
   const startEdit  = (seg: MySegment) =>
-    setEditing(prev => ({ ...prev, [seg.id]: { stopped_at_page: seg.stopped_at_page?.toString() ?? "", status: seg.status } }))
+    setEditing(prev => ({ ...prev, [seg.id]: {
+      stopped_at_page: seg.stopped_at_page?.toString() ?? "",
+      status: seg.status,
+      page_start: seg.page_start.toString(),
+      page_end: seg.page_end?.toString() ?? "",
+    }}))
   const cancelEdit = (id: number) =>
     setEditing(prev => { const n = { ...prev }; delete n[id]; return n })
 
@@ -274,10 +280,23 @@ function MySegmentsPanel({ userName }: { userName: string }) {
     const res = await fetch("/api/segments", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id, stopped_at_page: e.stopped_at_page ? parseInt(e.stopped_at_page) : null, status: e.status }),
+      body: JSON.stringify({
+        id,
+        page_start: parseInt(e.page_start),
+        page_end: e.page_end ? parseInt(e.page_end) : null,
+        stopped_at_page: e.stopped_at_page ? parseInt(e.stopped_at_page) : null,
+        status: e.status,
+        update_range: true,
+      }),
     })
     setSaving(prev => { const s = new Set(prev); s.delete(id); return s })
     if (res.ok) { cancelEdit(id); load() }
+  }
+
+  const deleteSeg = async (id: number) => {
+    await fetch(`/api/segments?id=${id}`, { method: "DELETE" })
+    setConfirming(prev => { const s = new Set(prev); s.delete(id); return s })
+    load()
   }
 
   if (loading) return (
@@ -299,8 +318,10 @@ function MySegmentsPanel({ userName }: { userName: string }) {
   const active     = [...inProgress, ...notStarted]
 
   const SegRow = ({ seg }: { seg: MySegment }) => {
-    const isEditing = !!editing[seg.id]
-    const isSaving  = saving.has(seg.id)
+    const isEditing    = !!editing[seg.id]
+    const isSaving     = saving.has(seg.id)
+    const isConfirming = confirming.has(seg.id)
+    const e            = editing[seg.id]
     return (
       <tr className="border-b border-gray-100 dark:border-gray-800 last:border-0 hover:bg-gray-50 dark:hover:bg-gray-800/30">
         <td className="px-5 py-3">
@@ -309,19 +330,33 @@ function MySegmentsPanel({ userName }: { userName: string }) {
           </Link>
         </td>
         <td className="px-4 py-3 font-medium text-gray-900 dark:text-white whitespace-nowrap text-base">
-          {seg.page_start}{seg.page_end ? ` – ${seg.page_end}` : "+"}
+          {isEditing ? (
+            <div className="flex items-center gap-1">
+              <input type="number" value={e.page_start}
+                onChange={ev => setEditing(prev => ({ ...prev, [seg.id]: { ...prev[seg.id], page_start: ev.target.value } }))}
+                className="w-20 h-8 px-2 text-sm rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-1 focus:ring-indigo-400"
+                placeholder="start" />
+              <span className="text-gray-400 text-sm">–</span>
+              <input type="number" value={e.page_end}
+                onChange={ev => setEditing(prev => ({ ...prev, [seg.id]: { ...prev[seg.id], page_end: ev.target.value } }))}
+                className="w-20 h-8 px-2 text-sm rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-1 focus:ring-indigo-400"
+                placeholder="end" />
+            </div>
+          ) : (
+            `${seg.page_start}${seg.page_end ? ` – ${seg.page_end}` : "+"}`
+          )}
         </td>
         <td className="px-4 py-3 text-gray-500 text-base">
           {isEditing ? (
-            <input type="number" value={editing[seg.id].stopped_at_page}
-              onChange={e => setEditing(prev => ({ ...prev, [seg.id]: { ...prev[seg.id], stopped_at_page: e.target.value } }))}
+            <input type="number" value={e.stopped_at_page}
+              onChange={ev => setEditing(prev => ({ ...prev, [seg.id]: { ...prev[seg.id], stopped_at_page: ev.target.value } }))}
               className="w-24 h-8 px-2 text-sm rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-1 focus:ring-indigo-400"
               placeholder="page #" />
           ) : (seg.stopped_at_page ?? "—")}
         </td>
         <td className="px-4 py-3">
           {isEditing ? (
-            <select value={editing[seg.id].status} onChange={e => setEditing(prev => ({ ...prev, [seg.id]: { ...prev[seg.id], status: e.target.value } }))}
+            <select value={e.status} onChange={ev => setEditing(prev => ({ ...prev, [seg.id]: { ...prev[seg.id], status: ev.target.value } }))}
               className="h-8 px-2 text-sm rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-1 focus:ring-indigo-400">
               <option>Not started</option>
               <option>In progress</option>
@@ -345,11 +380,29 @@ function MySegmentsPanel({ userName }: { userName: string }) {
                 Cancel
               </button>
             </div>
+          ) : isConfirming ? (
+            <div className="flex items-center gap-1.5">
+              <span className="text-sm text-red-500 font-medium">Delete?</span>
+              <button onClick={() => deleteSeg(seg.id)}
+                className="px-2.5 py-1 rounded-lg bg-red-500 hover:bg-red-600 text-white text-xs font-semibold transition-colors">
+                Yes
+              </button>
+              <button onClick={() => setConfirming(prev => { const s = new Set(prev); s.delete(seg.id); return s })}
+                className="px-2.5 py-1 rounded-lg bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400 text-xs font-semibold transition-colors">
+                No
+              </button>
+            </div>
           ) : (
-            <button onClick={() => startEdit(seg)}
-              className="px-3 py-1.5 rounded-lg bg-gray-100 hover:bg-indigo-50 dark:bg-gray-800 dark:hover:bg-indigo-900/30 text-gray-600 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 text-sm font-semibold transition-colors">
-              Update
-            </button>
+            <div className="flex gap-1.5">
+              <button onClick={() => startEdit(seg)}
+                className="px-3 py-1.5 rounded-lg bg-gray-100 hover:bg-indigo-50 dark:bg-gray-800 dark:hover:bg-indigo-900/30 text-gray-600 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 text-sm font-semibold transition-colors">
+                Update
+              </button>
+              <button onClick={() => setConfirming(prev => new Set(prev).add(seg.id))}
+                className="px-3 py-1.5 rounded-lg bg-gray-100 hover:bg-red-50 dark:bg-gray-800 dark:hover:bg-red-900/20 text-gray-400 hover:text-red-500 text-sm font-semibold transition-colors">
+                Delete
+              </button>
+            </div>
           )}
         </td>
       </tr>

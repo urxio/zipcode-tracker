@@ -63,23 +63,50 @@ export async function POST(req: NextRequest) {
 // PATCH /api/segments — update a segment
 export async function PATCH(req: NextRequest) {
   const body = await req.json()
-  const { id, stopped_at_page, status, owner, notes } = body
+  const { id, stopped_at_page, status, owner, notes, page_start, page_end, update_range } = body
 
   if (!id) return NextResponse.json({ error: "Missing id" }, { status: 400 })
 
-  const result = await pool.query(
-    `UPDATE zt_segments
-     SET
-       stopped_at_page = COALESCE($2, stopped_at_page),
-       status          = COALESCE($3, status),
-       owner           = COALESCE($4, owner),
-       notes           = COALESCE($5, notes),
-       updated_at      = NOW()
-     WHERE id = $1
-     RETURNING *`,
-    [id, stopped_at_page ?? null, status ?? null, owner ?? null, notes ?? null]
-  )
+  let result
+  if (update_range && page_start != null) {
+    result = await pool.query(
+      `UPDATE zt_segments
+       SET
+         page_start      = $2,
+         page_end        = $3,
+         stopped_at_page = COALESCE($4, stopped_at_page),
+         status          = COALESCE($5, status),
+         updated_at      = NOW()
+       WHERE id = $1
+       RETURNING *`,
+      [id, page_start, page_end ?? null, stopped_at_page ?? null, status ?? null]
+    )
+  } else {
+    result = await pool.query(
+      `UPDATE zt_segments
+       SET
+         stopped_at_page = COALESCE($2, stopped_at_page),
+         status          = COALESCE($3, status),
+         owner           = COALESCE($4, owner),
+         notes           = COALESCE($5, notes),
+         updated_at      = NOW()
+       WHERE id = $1
+       RETURNING *`,
+      [id, stopped_at_page ?? null, status ?? null, owner ?? null, notes ?? null]
+    )
+  }
 
   if (result.rows.length === 0) return NextResponse.json({ error: "Segment not found" }, { status: 404 })
   return NextResponse.json(result.rows[0])
+}
+
+// DELETE /api/segments?id=X — delete a segment
+export async function DELETE(req: NextRequest) {
+  await ensureSchema()
+  const id = req.nextUrl.searchParams.get("id")
+  if (!id) return NextResponse.json({ error: "Missing id" }, { status: 400 })
+
+  const result = await pool.query(`DELETE FROM zt_segments WHERE id = $1 RETURNING id`, [parseInt(id)])
+  if (result.rows.length === 0) return NextResponse.json({ error: "Segment not found" }, { status: 404 })
+  return NextResponse.json({ success: true })
 }
