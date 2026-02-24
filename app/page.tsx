@@ -331,16 +331,23 @@ function MySegmentsPanel({ userName }: { userName: string }) {
         </td>
         <td className="px-4 py-3 font-medium text-gray-900 dark:text-white whitespace-nowrap text-base">
           {isEditing ? (
-            <div className="flex items-center gap-1">
-              <input type="number" value={e.page_start}
-                onChange={ev => setEditing(prev => ({ ...prev, [seg.id]: { ...prev[seg.id], page_start: ev.target.value } }))}
-                className="w-20 h-8 px-2 text-sm rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-1 focus:ring-indigo-400"
-                placeholder="start" />
-              <span className="text-gray-400 text-sm">–</span>
-              <input type="number" value={e.page_end}
-                onChange={ev => setEditing(prev => ({ ...prev, [seg.id]: { ...prev[seg.id], page_end: ev.target.value } }))}
-                className="w-20 h-8 px-2 text-sm rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-1 focus:ring-indigo-400"
-                placeholder="end" />
+            <div className="flex flex-col gap-1">
+              <div className="flex items-center gap-1">
+                <input type="number" value={e.page_start}
+                  onChange={ev => setEditing(prev => ({ ...prev, [seg.id]: { ...prev[seg.id], page_start: ev.target.value } }))}
+                  className="w-20 h-8 px-2 text-sm rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-1 focus:ring-indigo-400"
+                  placeholder="start" />
+                <span className="text-gray-400 text-sm">–</span>
+                <input type="number" value={e.page_end}
+                  onChange={ev => setEditing(prev => ({ ...prev, [seg.id]: { ...prev[seg.id], page_end: ev.target.value } }))}
+                  className="w-20 h-8 px-2 text-sm rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-1 focus:ring-indigo-400"
+                  placeholder="end" />
+              </div>
+              {e.page_end && parseInt(e.page_end) > seg.total_pages && (
+                <p className="text-xs text-amber-500 whitespace-normal leading-tight">
+                  ⚠ Exceeds max of {seg.total_pages.toLocaleString()} pages. Check the A-Z book.
+                </p>
+              )}
             </div>
           ) : (
             `${seg.page_start}${seg.page_end ? ` – ${seg.page_end}` : "+"}`

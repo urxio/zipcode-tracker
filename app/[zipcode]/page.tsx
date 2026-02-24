@@ -245,16 +245,23 @@ export default function ZipcodePage({ params }: { params: Promise<{ zipcode: str
                             {/* Pages */}
                             <td className="px-5 py-3 font-medium text-gray-900 dark:text-white whitespace-nowrap">
                               {isEditing ? (
-                                <div className="flex items-center gap-1">
-                                  <input type="number" value={e.page_start}
-                                    onChange={ev => setEditing(prev => ({ ...prev, [seg.id]: { ...prev[seg.id], page_start: ev.target.value } }))}
-                                    className="w-20 h-8 px-2 text-sm rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-1 focus:ring-indigo-400"
-                                    placeholder="start" />
-                                  <span className="text-gray-400 text-sm">–</span>
-                                  <input type="number" value={e.page_end}
-                                    onChange={ev => setEditing(prev => ({ ...prev, [seg.id]: { ...prev[seg.id], page_end: ev.target.value } }))}
-                                    className="w-20 h-8 px-2 text-sm rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-1 focus:ring-indigo-400"
-                                    placeholder="end" />
+                                <div className="flex flex-col gap-1">
+                                  <div className="flex items-center gap-1">
+                                    <input type="number" value={e.page_start}
+                                      onChange={ev => setEditing(prev => ({ ...prev, [seg.id]: { ...prev[seg.id], page_start: ev.target.value } }))}
+                                      className="w-20 h-8 px-2 text-sm rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-1 focus:ring-indigo-400"
+                                      placeholder="start" />
+                                    <span className="text-gray-400 text-sm">–</span>
+                                    <input type="number" value={e.page_end}
+                                      onChange={ev => setEditing(prev => ({ ...prev, [seg.id]: { ...prev[seg.id], page_end: ev.target.value } }))}
+                                      className="w-20 h-8 px-2 text-sm rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-1 focus:ring-indigo-400"
+                                      placeholder="end" />
+                                  </div>
+                                  {e.page_end && zipcodeInfo && parseInt(e.page_end) > zipcodeInfo.total_pages && (
+                                    <p className="text-xs text-amber-500 whitespace-normal leading-tight">
+                                      ⚠ Exceeds max of {zipcodeInfo.total_pages.toLocaleString()} pages. Check the A-Z book.
+                                    </p>
+                                  )}
                                 </div>
                               ) : (
                                 <>
@@ -388,6 +395,11 @@ export default function ZipcodePage({ params }: { params: Promise<{ zipcode: str
                     max={zipcodeInfo.total_pages}
                     className="h-10 w-32 px-3 text-base rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-1 focus:ring-indigo-400"
                   />
+                  {claimEnd && parseInt(claimEnd) > zipcodeInfo.total_pages && (
+                    <p className="mt-1.5 text-xs text-amber-500 max-w-[8rem] leading-tight">
+                      ⚠ Exceeds max of {zipcodeInfo.total_pages.toLocaleString()} pages. Double-check the A-Z book.
+                    </p>
+                  )}
                 </div>
                 <button
                   onClick={claim}
