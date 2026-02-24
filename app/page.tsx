@@ -317,13 +317,13 @@ function MySegmentsPanel({ userName }: { userName: string }) {
   const completed  = segments.filter(s => s.status === "Completed")
   const active     = [...inProgress, ...notStarted]
 
-  const SegRow = ({ seg }: { seg: MySegment }) => {
+  const renderSegRow = (seg: MySegment) => {
     const isEditing    = !!editing[seg.id]
     const isSaving     = saving.has(seg.id)
     const isConfirming = confirming.has(seg.id)
     const e            = editing[seg.id]
     return (
-      <tr className="border-b border-gray-100 dark:border-gray-800 last:border-0 hover:bg-gray-50 dark:hover:bg-gray-800/30">
+      <tr key={seg.id} className="border-b border-gray-100 dark:border-gray-800 last:border-0 hover:bg-gray-50 dark:hover:bg-gray-800/30">
         <td className="px-5 py-3">
           <Link href={`/${seg.zipcode}`} className="font-semibold text-indigo-600 dark:text-indigo-400 hover:underline text-sm">
             {seg.city} {seg.zipcode}
@@ -445,7 +445,7 @@ function MySegmentsPanel({ userName }: { userName: string }) {
               </tr>
             </thead>
             <tbody>
-              {active.map(seg => <SegRow key={seg.id} seg={seg} />)}
+              {active.map(seg => renderSegRow(seg))}
             </tbody>
           </table>
         </div>
@@ -472,7 +472,7 @@ function MySegmentsPanel({ userName }: { userName: string }) {
             <div className="overflow-x-auto border-t border-gray-100 dark:border-gray-800">
               <table className="w-full text-sm">
                 <tbody>
-                  {completed.map(seg => <SegRow key={seg.id} seg={seg} />)}
+                  {completed.map(seg => renderSegRow(seg))}
                 </tbody>
               </table>
             </div>
