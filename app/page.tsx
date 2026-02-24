@@ -345,7 +345,7 @@ function MySegmentsPanel({ userName }: { userName: string }) {
               </div>
               {e.page_end && parseInt(e.page_end) > seg.total_pages && (
                 <p className="text-xs text-amber-500 whitespace-normal leading-tight">
-                  ⚠ Exceeds max of {seg.total_pages.toLocaleString()} pages. Check the A-Z book.
+                  ⚠ Exceeds max of {seg.total_pages.toLocaleString()} pages. Double-check the A-Z site.
                 </p>
               )}
             </div>

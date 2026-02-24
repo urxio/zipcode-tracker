@@ -259,7 +259,7 @@ export default function ZipcodePage({ params }: { params: Promise<{ zipcode: str
                                   </div>
                                   {e.page_end && zipcodeInfo && parseInt(e.page_end) > zipcodeInfo.total_pages && (
                                     <p className="text-xs text-amber-500 whitespace-normal leading-tight">
-                                      ⚠ Exceeds max of {zipcodeInfo.total_pages.toLocaleString()} pages. Check the A-Z book.
+                                      ⚠ Exceeds max of {zipcodeInfo.total_pages.toLocaleString()} pages. Double-check the A-Z site.
                                     </p>
                                   )}
                                 </div>
@@ -397,7 +397,7 @@ export default function ZipcodePage({ params }: { params: Promise<{ zipcode: str
                   />
                   {claimEnd && parseInt(claimEnd) > zipcodeInfo.total_pages && (
                     <p className="mt-1.5 text-xs text-amber-500 max-w-[8rem] leading-tight">
-                      ⚠ Exceeds max of {zipcodeInfo.total_pages.toLocaleString()} pages. Double-check the A-Z book.
+                      ⚠ Exceeds max of {zipcodeInfo.total_pages.toLocaleString()} pages. Double-check the A-Z site.
                     </p>
                   )}
                 </div>
