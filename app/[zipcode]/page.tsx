@@ -391,11 +391,11 @@ export default function ZipcodePage({ params }: { params: Promise<{ zipcode: str
                                 ) : (
                                   <div className="flex items-center gap-1.5">
                                     <button onClick={() => startEdit(seg)}
-                                      className="px-3 py-1.5 rounded-lg bg-gray-100 hover:bg-indigo-50 dark:bg-gray-800 dark:hover:bg-indigo-900/30 text-gray-600 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 text-sm font-semibold transition-colors">
+                                      className="px-3 py-1.5 rounded-lg bg-indigo-100 hover:bg-indigo-200 dark:bg-indigo-900/40 dark:hover:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 text-sm font-semibold transition-colors">
                                       Update
                                     </button>
                                     <button onClick={() => setConfirming(prev => new Set(prev).add(seg.id))}
-                                      className="px-3 py-1.5 rounded-lg bg-gray-100 hover:bg-red-50 dark:bg-gray-800 dark:hover:bg-red-900/20 text-gray-400 hover:text-red-500 text-sm font-semibold transition-colors">
+                                      className="px-3 py-1.5 rounded-lg bg-red-100 hover:bg-red-200 dark:bg-red-900/30 dark:hover:bg-red-900/50 text-red-600 dark:text-red-400 text-sm font-semibold transition-colors">
                                       Delete
                                     </button>
                                   </div>
