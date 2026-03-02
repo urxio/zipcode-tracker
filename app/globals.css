@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* Use class-based dark mode so the toggle button can override system preference */
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
