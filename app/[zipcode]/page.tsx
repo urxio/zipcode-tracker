@@ -282,7 +282,7 @@ export default function ZipcodePage({ params }: { params: Promise<{ zipcode: str
                         const e            = editing[seg.id]
 
                         return (
-                          <tr key={seg.id} className={`border-b border-gray-100 dark:border-gray-800 last:border-0 ${isOwner ? "bg-indigo-50/40 dark:bg-indigo-900/10" : "hover:bg-gray-50 dark:hover:bg-gray-800/30"}`}>
+                          <tr key={seg.id} className={`border-b border-gray-100 dark:border-gray-800 last:border-0 ${isOwner ? "bg-indigo-50 dark:bg-indigo-900/20 border-l-[3px] border-l-indigo-500 dark:border-l-indigo-400" : "hover:bg-gray-50 dark:hover:bg-gray-800/30"}`}>
                             {/* Pages */}
                             <td className="px-5 py-3 font-medium text-gray-900 dark:text-white whitespace-nowrap">
                               {isEditing ? (
@@ -315,7 +315,13 @@ export default function ZipcodePage({ params }: { params: Promise<{ zipcode: str
                             </td>
 
                             {/* Owner */}
-                            <td className="px-4 py-3 text-gray-600 dark:text-gray-400">{seg.owner || "—"}</td>
+                            <td className="px-4 py-3">
+                              {isOwner ? (
+                                <span className="font-bold text-indigo-700 dark:text-indigo-300">{seg.owner}</span>
+                              ) : (
+                                <span className="text-gray-600 dark:text-gray-400">{seg.owner || "—"}</span>
+                              )}
+                            </td>
 
                             {/* Stopped at */}
                             <td className="px-4 py-3 text-gray-500 dark:text-gray-500">
