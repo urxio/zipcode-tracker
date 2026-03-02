@@ -14,6 +14,18 @@ type Segment = {
   updated_at: string
 }
 
+function timeAgo(dateStr: string): string {
+  const diff = Date.now() - new Date(dateStr).getTime()
+  const mins = Math.floor(diff / 60000)
+  if (mins < 1) return "just now"
+  if (mins < 60) return `${mins}m ago`
+  const hours = Math.floor(mins / 60)
+  if (hours < 24) return `${hours}h ago`
+  const days = Math.floor(hours / 24)
+  if (days < 7) return `${days}d ago`
+  return new Date(dateStr).toLocaleDateString("en-US", { month: "short", day: "numeric" })
+}
+
 type ZipcodeInfo = {
   city: string
   zipcode: string
@@ -229,6 +241,7 @@ export default function ZipcodePage({ params }: { params: Promise<{ zipcode: str
                         <th className="text-left px-4 py-3 text-sm font-semibold text-gray-400 uppercase tracking-wide">Owner</th>
                         <th className="text-left px-4 py-3 text-sm font-semibold text-gray-400 uppercase tracking-wide">Stopped at</th>
                         <th className="text-left px-4 py-3 text-sm font-semibold text-gray-400 uppercase tracking-wide">Status</th>
+                        <th className="text-left px-4 py-3 text-sm font-semibold text-gray-400 uppercase tracking-wide">Updated</th>
                         <th className="px-4 py-3"></th>
                       </tr>
                     </thead>
@@ -308,6 +321,11 @@ export default function ZipcodePage({ params }: { params: Promise<{ zipcode: str
                                   {seg.status}
                                 </span>
                               )}
+                            </td>
+
+                            {/* Updated */}
+                            <td className="px-4 py-3 text-xs text-gray-400 whitespace-nowrap">
+                              {timeAgo(seg.updated_at)}
                             </td>
 
                             {/* Actions */}

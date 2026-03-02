@@ -33,6 +33,18 @@ function pct(a: number, total: number) {
   return total > 0 ? Math.round((a / total) * 100) : 0
 }
 
+function timeAgo(dateStr: string): string {
+  const diff = Date.now() - new Date(dateStr).getTime()
+  const mins = Math.floor(diff / 60000)
+  if (mins < 1) return "just now"
+  if (mins < 60) return `${mins}m ago`
+  const hours = Math.floor(mins / 60)
+  if (hours < 24) return `${hours}h ago`
+  const days = Math.floor(hours / 24)
+  if (days < 7) return `${days}d ago`
+  return new Date(dateStr).toLocaleDateString("en-US", { month: "short", day: "numeric" })
+}
+
 const STATUS_STYLES: Record<string, string> = {
   "Completed":   "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300",
   "In progress": "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300",
@@ -375,6 +387,9 @@ function MySegmentsPanel({ userName }: { userName: string }) {
             </span>
           )}
         </td>
+        <td className="px-4 py-3 text-xs text-gray-400 whitespace-nowrap">
+          {timeAgo(seg.updated_at)}
+        </td>
         <td className="px-4 py-3">
           {isEditing ? (
             <div className="flex gap-1.5">
@@ -441,6 +456,7 @@ function MySegmentsPanel({ userName }: { userName: string }) {
                 <th className="text-left px-4 py-2.5 text-sm font-semibold text-gray-400 uppercase tracking-wide">Pages</th>
                 <th className="text-left px-4 py-2.5 text-sm font-semibold text-gray-400 uppercase tracking-wide">Stopped at</th>
                 <th className="text-left px-4 py-2.5 text-sm font-semibold text-gray-400 uppercase tracking-wide">Status</th>
+                <th className="text-left px-4 py-2.5 text-sm font-semibold text-gray-400 uppercase tracking-wide">Updated</th>
                 <th className="px-4 py-2"></th>
               </tr>
             </thead>
