@@ -181,6 +181,21 @@ export default function ZipcodePage({ params }: { params: Promise<{ zipcode: str
             </span>
           </div>
           <div className="flex items-center gap-2">
+            {/* OTMRT Helper link */}
+            <a
+              href="https://otmrtsite.vercel.app/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hidden sm:flex items-center gap-1.5 h-9 px-3 rounded-lg text-sm font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/30 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 transition-colors"
+              title="Open OTMRT Helper site"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+                <polyline points="15 3 21 3 21 9"/>
+                <line x1="10" y1="14" x2="21" y2="3"/>
+              </svg>
+              OTMRT
+            </a>
             {/* Dark mode toggle */}
             <button onClick={toggleDark}
               className="w-9 h-9 flex items-center justify-center rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
