@@ -452,7 +452,7 @@ export default function ZipcodePage({ params }: { params: Promise<{ zipcode: str
                   />
                 </div>
                 <div>
-                  <label className="block text-sm text-gray-400 mb-1">End page <span className="text-gray-300 dark:text-gray-600">(optional)</span></label>
+                  <label className="block text-sm text-gray-400 mb-1">End page</label>
                   <input
                     type="number"
                     value={claimEnd}
